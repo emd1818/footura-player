@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FOOTURA PLAYER — Professional Prototype</title>
+<style>
+:root{
+ --bg:#061019;--bg2:#081521;--panel:#0d1b29;--panel2:#112438;--line:#203448;
+ --text:#f4f7fb;--muted:#91a4b8;--accent:#c7ff00;--accent2:#5de27c;
+ --orange:#ffb44a;--blue:#63b3ff;--danger:#ff7070;--shadow:0 18px 50px #0007;
+}
+*{box-sizing:border-box}html,body{margin:0;background:#02070c;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}
+.app{min-height:100vh;background:radial-gradient(circle at 80% -10%,#17314a 0,#061019 34%,#03080d 100%)}
+.shell{width:min(1440px,100%);margin:auto;min-height:100vh;display:grid;grid-template-columns:240px 1fr}
+.sidebar{border-right:1px solid var(--line);background:#07111bf5;position:sticky;top:0;height:100vh;padding:22px 14px;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px;font-weight:1000;font-size:20px;font-style:italic;padding:0 10px 28px}.mark{width:38px;height:38px;border:2px solid var(--accent);border-radius:11px;display:grid;place-items:center;color:var(--accent);font-weight:1000}.brand small{display:block;color:var(--accent);font-size:9px;letter-spacing:2px;margin-top:1px}
+.nav{display:flex;flex-direction:column;gap:5px}.nav button{border:0;background:transparent;color:var(--muted);padding:12px 13px;border-radius:11px;text-align:left;display:flex;align-items:center;gap:12px;font-weight:800}.nav button:hover,.nav button.active{background:#14283a;color:var(--accent)}.navIcon{width:22px;text-align:center;font-size:18px}
+.sidePlayer{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel)}.mini{display:flex;gap:10px;align-items:center}.avatar{width:42px;height:42px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;color:var(--accent);font-weight:900;background:linear-gradient(145deg,#334a60,#0b1722)}.sidePlayer b{font-size:13px}.sidePlayer small{color:var(--muted)}
+main{min-width:0}.top{height:72px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:0 28px;background:#07111be8;backdrop-filter:blur(15px);position:sticky;top:0;z-index:30}.crumb{color:var(--muted);font-size:13px}.topActions{display:flex;gap:9px}.iconBtn{width:40px;height:40px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:11px}.content{padding:28px 30px 50px;max-width:1220px}.screen{display:none}.screen.active{display:block;animation:fade .18s ease}@keyframes fade{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
+h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-size:19px;margin:26px 0 12px}h3{margin:9px 0 6px}.muted{color:var(--muted);line-height:1.5}.eyebrow{color:var(--accent);font-size:10px;font-weight:1000;letter-spacing:1.6px}.tag{display:inline-flex;background:#193220;color:var(--accent);border:1px solid #355a35;padding:5px 8px;border-radius:7px;font-size:9px;font-weight:1000;letter-spacing:.7px}
+.grid2{display:grid;grid-template-columns:1fr 1.5fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{background:linear-gradient(145deg,#122335,#0b1723);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 8px 25px #0002}.card.click{transition:.15s}.card.click:hover{transform:translateY(-2px);border-color:#3a566e}
+.profileHero{display:flex;align-items:center;gap:15px}.profileHero .avatar{width:68px;height:68px;font-size:23px}.profileHero h2{margin:0;font-size:21px}.score{margin-left:auto;text-align:center;padding-left:18px;border-left:1px solid var(--line)}.score b{display:block;color:var(--accent);font-size:34px;line-height:1}.score small{color:var(--muted)}
+.focus{min-height:225px;position:relative;overflow:hidden;background:linear-gradient(115deg,#15283b,#0b151f)}.focus:after{content:"⚽";position:absolute;right:30px;bottom:-16px;font-size:130px;opacity:.055}.focus h2{font-size:28px;line-height:1.15;max-width:650px;margin:17px 0}.green{color:var(--accent)}.orange{color:var(--orange)}.blue{color:var(--blue)}
+.primary{border:0;background:var(--accent);color:#071006;font-weight:1000;border-radius:10px;padding:12px 15px}.secondary{border:1px solid var(--line);background:#0c1824;color:var(--text);font-weight:800;border-radius:10px;padding:11px 14px}.danger{color:var(--danger)}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.quick button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:13px;text-align:left}.quick button:hover{border-color:#46617a}.quick b{display:block;margin-bottom:3px}
+.model{min-height:220px}.model .num{font-weight:1000;color:var(--accent)}.model:nth-child(2) .num{color:var(--orange)}.model:nth-child(3) .num{color:var(--blue)}.model ul{padding-left:17px;color:#d5dde7;line-height:1.7}.model li::marker{color:var(--accent)}
+.sectionHead{display:flex;justify-content:space-between;align-items:end;gap:15px}.link{border:0;background:none;color:var(--accent);font-weight:1000}
+.exercise{display:grid;grid-template-columns:42px 85px 1fr 90px 34px;gap:12px;align-items:center;padding:12px 5px;border-bottom:1px solid var(--line)}.exercise:last-child{border:0}.exNo{font-size:22px;color:var(--accent);font-weight:1000}.thumb{height:54px;border-radius:9px;background:linear-gradient(135deg,#263d52,#0c1721);display:grid;place-items:center;font-size:22px}.check{width:25px;height:25px;border-radius:50%;border:1px solid #617185;background:transparent;color:transparent}.check.done{background:var(--accent);border-color:var(--accent);color:#071006}
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin:18px 0}.tabs button{border:0;background:none;color:var(--muted);padding:10px 0;font-weight:900}.tabs button.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+.progressLine{height:7px;background:#263647;border-radius:7px;overflow:hidden}.progressLine i{display:block;height:100%;background:var(--accent);border-radius:7px}
+.metric{display:flex;justify-content:space-between;align-items:center;margin:11px 0 5px}.metric b{font-size:13px}.metric span{color:var(--accent);font-weight:900}
+.circle{width:140px;height:140px;border-radius:50%;border:14px solid var(--accent);display:grid;place-items:center;margin:auto;font-size:34px;font-weight:1000}
+.role{display:grid;grid-template-columns:1fr 1fr;gap:10px}.roleItem{border:1px solid var(--line);border-radius:13px;padding:14px;background:var(--panel)}.roleItem b{color:var(--accent)}
+.question{margin:14px 0}.question label{font-weight:850;display:block;margin-bottom:7px}.question textarea{width:100%;min-height:92px;resize:vertical;background:#091520;border:1px solid var(--line);border-radius:11px;color:white;padding:12px}
+.input{width:100%;background:#091520;color:white;border:1px solid var(--line);border-radius:10px;padding:12px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:20px;padding:8px 11px}.chip.active{border-color:var(--accent);background:#183322;color:var(--accent)}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:18px;z-index:100}.modal.open{display:flex}.modalBox{width:min(820px,100%);max-height:92vh;overflow:auto;background:#091521;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}.close{float:right;background:none;border:0;color:white;font-size:26px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#142638;border:1px solid var(--line);padding:11px 16px;border-radius:10px;display:none;z-index:120}
+.mobileNav{display:none}
+@media(max-width:900px){.shell{display:block}.sidebar{display:none}.mobileNav{display:grid;position:fixed;bottom:0;left:0;right:0;height:70px;background:#07111bf7;border-top:1px solid var(--line);grid-template-columns:repeat(6,1fr);z-index:50}.mobileNav button{background:none;border:0;color:var(--muted);font-size:10px}.mobileNav button.active{color:var(--accent)}.mobileNav i{font-style:normal;display:block;font-size:20px;margin-bottom:3px}.content{padding:20px 13px 90px}.top{padding:0 13px}.grid2,.grid3,.videoGrid{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.quick{grid-template-columns:1fr 1fr}.exercise{grid-template-columns:30px 60px 1fr 34px}.exercise .time{display:none}.role{grid-template-columns:1fr}h1{font-size:29px}.focus h2{font-size:24px}}
+</style>
+
+
+
+
+
+
+
+<style id="exercise-info-clean">
+.thumb{background:linear-gradient(135deg,#10283a,#071019);border:1px solid #2b4557;display:grid;place-items:center}
+.thumb span{font-size:9px;letter-spacing:1.5px;color:var(--accent);font-weight:800}
+.infoBtn{border:1px solid #3b5567;background:#0b1a27;color:#dce7ed;border-radius:8px;padding:8px 10px;font-size:10px;font-weight:800;letter-spacing:.3px}
+.infoBtn:hover{border-color:var(--accent);color:var(--accent)}
+.exerciseInfo{max-width:760px}
+</style>
+
+<style id="theory-page">
+.theoryArticle{padding:28px 30px 34px}
+.theoryTitle{font-size:32px;line-height:1.15;margin:12px 0}
+.theoryLead{font-size:17px;max-width:900px;line-height:1.7}
+.theoryQuote{margin:24px 0;padding:18px 20px;border-left:3px solid var(--accent);background:#0a1722;border-radius:0 12px 12px 0;display:grid;gap:7px}
+.theoryQuote b{font-size:17px}
+.theoryQuote span{color:var(--muted);line-height:1.6}
+.theoryQuote.accent{background:linear-gradient(120deg,#122315,#0a1722)}
+.theoryCards .num{font-size:28px;color:var(--accent);font-weight:1000}
+.theoryRule{margin:20px 0;border-color:#39552a}
+.theoryRule h3{font-size:20px}
+.theoryMap{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.theoryMap>div{padding:14px;border:1px solid var(--line);border-radius:12px;background:#0a1722;display:grid;gap:7px}
+.theoryMap .eyebrow{font-size:9px}
+.theoryFormula{margin-top:16px}
+.theoryFormula>div{display:grid;gap:6px;padding:14px;border-left:2px solid var(--accent)}
+.theoryFormula b{font-size:25px;color:var(--accent)}
+.theoryFormula span{font-weight:800}
+@media(max-width:900px){.theoryArticle{padding:22px 17px}.theoryTitle{font-size:26px}.theoryMap{grid-template-columns:1fr 1fr}.theoryFormula{grid-template-columns:1fr 1fr}}
+</style>
+
+<style id="football-trials-module">
+.trialsTabs{display:flex;gap:8px;margin:18px 0 16px;border-bottom:1px solid var(--line)}
+.trialTab{background:transparent;border:0;color:var(--muted);padding:11px 16px;font-weight:900;font-size:11px;letter-spacing:.6px;cursor:pointer;border-bottom:2px solid transparent}
+.trialTab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.trialsList{display:grid;gap:12px}.trialCard{background:#09151f;border:1px solid #263d4d;border-radius:14px;padding:18px}
+.trialTop{display:flex;justify-content:space-between;gap:16px}.trialClub{color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.8px}
+.trialTitle{font-size:21px;margin:5px 0 8px}.trialMeta{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.trialPill{background:#0e202d;border:1px solid #2b4557;border-radius:999px;padding:6px 9px;color:#c8d6de;font-size:10px}
+.trialDesc{color:#b4c2ca;line-height:1.55}.trialRequirements{margin-top:13px;padding-top:13px;border-top:1px solid #203441;line-height:1.55}
+.trialContact{margin-top:12px;color:var(--accent);font-weight:800;font-size:12px}.trialSource{margin-top:10px;font-size:10px;color:#7f929f}
+.trialSource a{color:#9fb1bc}.trialSourceLink{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid #2b4557;border-radius:8px;text-decoration:none;font-weight:800}.trialSourceLink:hover{border-color:var(--accent);color:var(--accent)}.trialEmpty{padding:30px;text-align:center;border:1px dashed #304958;border-radius:14px;color:#8ea0aa}
+@media(max-width:700px){.trialTop{display:block}.trialTitle{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="app"><div class="shell">
+<aside class="sidebar">
+ <div class="brand"><div class="mark">F</div><div>FOOTURA<small>PLAYER</small></div></div>
+ <nav class="nav">
+  <button class="active" data-go="home"><span class="navIcon">⌂</span>Начало</button>
+  <button data-go="training"><span class="navIcon">⚽</span>Тренировки</button>
+  <button data-go="theory"><span class="navIcon">◈</span>Теория</button>
+  <button data-go="trials"><span class="navIcon">⚽</span>ФУТБОЛНИ ПРОБИ</button>
+  <button data-go="model"><span class="navIcon">▦</span>Игрови модел</button>
+  <button data-go="progress"><span class="navIcon">↗</span>Прогрес</button>
+  <button data-go="match"><span class="navIcon">☷</span>След мача</button>
+  <button data-go="profile"><span class="navIcon">♙</span>Профил</button>
+ </nav>
+ <div class="sidePlayer"><div class="mini"><div class="avatar">E</div><div><b>Emil</b><br><small>Крило · LW · Ниво 78</small></div></div></div>
+</aside>
+
+<main>
+<header class="top"><div class="crumb" id="crumb">FOOTURA PLAYER / НАЧАЛО</div><div class="topActions"><button class="iconBtn" onclick="toast('Няма нови известия')">♧</button><button class="iconBtn" onclick="go('profile')">●</button></div></header>
+<div class="content">
+
+<section id="home" class="screen active">
+ <div class="grid2">
+  <div class="card"><div class="profileHero"><div class="avatar">E</div><div><span class="tag">LW · КРИЛО</span><h2>Emil</h2><div class="muted">19 години · индивидуален профил</div></div><div class="score"><small>НИВО</small><b>78</b><small>/100</small></div></div></div>
+  <div class="card focus"><span class="tag">TODAY'S FOCUS</span><h2>Първо <span class="green">разпознай</span> → после <span class="green">избери</span> → изпълни.</h2><p class="muted">Днешен фокус: сканиране, ширина, скорост на решение и 1v1.</p><button class="primary" onclick="go('plan')">ВИЖ МОЯТА ЦЕЛ →</button></div>
+ </div>
+ <div class="quick">
+  <button onclick="go('plan')"><b>🎯 Моята цел</b><span class="muted">30-дневен цикъл</span></button>
+  <button onclick="go('training')"><b>⚽ Тренировка</b><span class="muted">4 упражнения днес</span></button>
+  <button onclick="go('match')"><b>☷ След мача</b><span class="muted">15 минути анализ</span></button>
+ </div>
+ <div class="sectionHead"><h2>ТВОЯТ ИГРОВИ МОДЕЛ</h2><button class="link" onclick="go('model')">ВИЖ МОДЕЛА →</button></div>
+ <div class="grid3">
+  <div class="card model click" onclick="openModel('possession')"><div class="num">01</div><h3>Притежание и прогресия</h3><p class="muted">Създавай превъзходство и напредвай контролирано.</p><ul><li>Ширина</li><li>Дълбочина</li><li>Трети човек</li></ul></div>
+  <div class="card model click" onclick="openModel('transition')"><div class="num">02</div><h3>Преходи</h3><p class="muted">Реагирай първи след загуба или спечелване.</p><ul><li>Контрапреса</li><li>Вертикалност</li><li>Стабилизация</li></ul></div>
+  <div class="card model click" onclick="openModel('defence')"><div class="num">03</div><h3>Защита и контрол</h3><p class="muted">Управлявай пространството като част от блока.</p><ul><li>Компактност</li><li>Комуникация</li><li>Опасни зони</li></ul></div>
+ </div>
+ <div class="sectionHead"><h2>ДНЕШНА ТРЕНИРОВКА</h2><button class="link" onclick="go('training')">ОТВОРИ →</button></div>
+ <div class="card" id="homeExercises"></div>
+ <div class="grid2" style="margin-top:13px"><div class="card"><span class="eyebrow">СЕДМИЧЕН ПРОГРЕС</span><div style="display:flex;align-items:center;gap:18px;margin-top:10px"><strong style="font-size:44px;color:var(--accent)">85%</strong><span class="muted">6 от 7 дни<br>с изпълнен фокус.</span></div></div><div class="card"><span class="eyebrow">ПОСЛЕДЕН МАЧ</span><h2 style="font-size:30px;margin:8px 0">2 — 1</h2><span class="muted">Твоя оценка</span><div class="green" style="font-size:25px;margin-top:5px">★★★★<span style="color:#475565">★</span></div></div></div>
+</section>
+
+<section id="training" class="screen">
+ <div class="sectionHead"><div><h1>ТРЕНИРОВКИ</h1><div class="muted">Упражнение → критерий → игрово поведение → мач.</div></div><button class="secondary" onclick="toast('Филтрите са готови за позиция, фокус и ниво')">☷ ФИЛТРИ</button></div>
+ <div class="tabs"><button class="active" data-tab="today" onclick="trainingTab('today')">ДНЕШНА</button><button data-tab="exercises">УПРАЖНЕНИЯ</button><button data-tab="programs">ПРОГРАМИ</button></div>
+ <div id="trainToday" class="trainPanel">
+  <div class="grid2"><div class="card"><span class="eyebrow">ДНЕШЕН ФОКУС</span><h2>Решение под натиск</h2><p class="muted">Сканирай преди получаване. Приеми с отворено тяло. Избери действие преди натиска.</p><div class="progressLine"><i style="width:75%"></i></div><p class="muted">3 / 4 упражнения</p></div><div class="card"><span class="eyebrow">ВРЕМЕ</span><h2 style="font-size:34px">40 <span class="muted" style="font-size:15px">мин</span></h2><p class="muted">4 упражнения · индивидуална сесия</p><button class="primary" onclick="startWorkout()">ЗАПОЧНИ ТРЕНИРОВКАТА</button></div></div>
+  <h2>ДНЕШНИ УПРАЖНЕНИЯ</h2><div class="card" id="todayExercises"></div>
+ </div>
+ <div id="trainExercises" class="trainPanel" style="display:none"><div class="card"><div class="sectionHead"><div><span class="eyebrow">КАТАЛОГ</span><h2 style="margin-top:5px">21 ИНДИВИДУАЛНИ УПРАЖНЕНИЯ</h2><div class="muted">Всяко упражнение има собствено практическо обяснение и критерий за усвояване.</div></div><span class="tag">ПЪЛЕН КАТАЛОГ</span></div><div id="allExercises"></div></div></div>
+ <div id="trainPrograms" class="trainPanel" style="display:none"><div class="grid3" id="programs"></div></div>
+</section>
+
+
+
+<section id="trials" class="screen">
+ <div class="sectionHead">
+  <div><span class="eyebrow">FOOTURA PLAYER · FOOTBALL TRIALS</span>
+  <h1>ФУТБОЛНИ ПРОБИ</h1>
+  <div class="muted">Реални обяви от България, Европа и по света · информацията се обновява автоматично на всеки 24 часа.</div></div>
+ </div>
+ <div class="trialsTabs">
+  <button class="trialTab active" data-trialtab="active">АКТУАЛНИ</button>
+  <button class="trialTab" data-trialtab="past">МИНАЛИ</button>
+ </div>
+ <div id="trialsStatus" class="muted" style="margin:12px 0"></div>
+ <div id="trialsList" class="trialsList"></div>
+</section>
+
+<section id="theory" class="screen">
+ <div class="sectionHead">
+  <div>
+   <span class="eyebrow">FOOTURA METHODOLOGY</span>
+   <h1>ТЕОРИЯ</h1>
+   <div class="muted">Как индивидуалното действие се превръща в игрово поведение.</div>
+  </div>
+  <span class="tag">ЗА ФУТБОЛИСТА</span>
+ </div>
+
+ <article class="card theoryArticle" style="margin-top:16px">
+  <div class="eyebrow">МЕТОДИКАТА НЕ ЗАПОЧВА С ТОПКАТА</div>
+  <h2 class="theoryTitle">Първо разпознай. После избери. Накрая изпълни.</h2>
+  <p class="muted theoryLead">
+   В FOOTURA индивидуалната подготовка не е сбор от красиви упражнения.
+   Тя е опит да се изгради футболист, който разпознава ситуацията навреме,
+   избира правилното действие и го изпълнява достатъчно бързо, за да има
+   значение в мача.
+  </p>
+
+  <div class="theoryQuote">
+   <b>Играчът не се оценява само по това дали е направил действието.</b>
+   <span>Оценява се дали е бил на правилното място, дали е разпознал ситуацията и дали е направил правилното действие в правилния момент.</span>
+  </div>
+
+  <h2>1. Трите пласта на играта</h2>
+  <p class="muted">
+   Методиката използва една и съща логика в три пласта:
+   <b>индивидуално действие → действие на втория играч → действие на блока.</b>
+   Това означава, че футболистът първо трябва да разбира собствената си задача,
+   след това връзката с партньора и накрая мястото си в структурата.
+  </p>
+  <div class="grid3 theoryCards">
+   <div class="card"><span class="num">01</span><h3>Индивид</h3><p class="muted">Какво правя аз — с топка, без топка и в контакта?</p></div>
+   <div class="card"><span class="num">02</span><h3>Втори играч</h3><p class="muted">Как се свързвам с партньора и какво действие му създавам?</p></div>
+   <div class="card"><span class="num">03</span><h3>Блок</h3><p class="muted">Как моето действие помага на цялата структура?</p></div>
+  </div>
+
+  <h2>2. Тялото и времето решават много преди топката</h2>
+  <p class="muted">
+   При защитните действия методиката поставя силен акцент върху подхождането,
+   прихващането с тяло, погледа към тялото на противника и правилния момент.
+   Това е различен начин на мислене от „тичам към топката“. Първо управляваш
+   дистанцията, ъгъла и времето; после атакуваш действието.
+  </p>
+  <div class="card theoryRule">
+   <span class="eyebrow">ЗАПОМНИ</span>
+   <h3>Не атакувай топката автоматично.</h3>
+   <p class="muted">Първо прочети тялото, посоката и момента. После действай.</p>
+  </div>
+
+  <h2>3. В атака пространството идва преди завършването</h2>
+  <p class="muted">
+   В атакуващите ситуации логиката започва с разтягане на структурата.
+   Ширината и дълбочината създават пространство; партньорът използва това
+   пространство; след това идват преминаването и завършването.
+   Затова в малките числови превъзходства формата не е декоративна.
+   При 3v1 и 3v2 например триъгълникът трябва да се запази.
+  </p>
+  <div class="grid2">
+   <div class="card"><span class="eyebrow">ПРАВИЛО</span><h3>Разтегни → свържи → завърши</h3><p class="muted">Правилното разположение е част от действието, не подготовка извън него.</p></div>
+   <div class="card"><span class="eyebrow">ЗАБРАНА</span><h3>Не убивай остротата</h3><p class="muted">Излишното разиграване пред вратата дава време на защитата да се организира.</p></div>
+  </div>
+
+  <h2>4. 21 упражнения, една логика</h2>
+  <p class="muted">
+   Каталогът започва с контакт: прихващане с тяло, посрещане, подхождане,
+   единоборства, игра с тяло и спорни топки. Следват сканиране и двойно
+   поглеждане, завършващи ситуации, статични положения и накрая профилите
+   на защитника, халфа и нападателя. Така упражненията не стоят отделно —
+   те покриват последователно различни решения, които футболистът трябва да
+   разпознава и изпълнява.
+  </p>
+
+  <div class="card theoryMap">
+   <div><span class="eyebrow">ВЛИЗАНЕ В КОНТАКТ</span><b>Тяло · дистанция · момент</b></div>
+   <div><span class="eyebrow">ЗАВЪРШВАНЕ</span><b>Превъзходство · пространство · острота</b></div>
+   <div><span class="eyebrow">СТАТИЧНИ ПОЛОЖЕНИЯ</span><b>Повторение · стереотип · точност</b></div>
+   <div><span class="eyebrow">ПРОФИЛ</span><b>Защитник · халф · нападател</b></div>
+  </div>
+
+  <h2>5. Кога едно упражнение е усвоено?</h2>
+  <p class="muted">
+   Методиката настоява за критерий, а не за впечатление. Например при
+   прихващането усвояването е свързано със стереотипно изпълнение на скорост,
+   а при определени завършващи ситуации има конкретни очаквания за резултат.
+   Това превръща тренировката от „направих упражнението“ в „мога да го
+   направя надеждно“.
+  </p>
+
+  <div class="theoryQuote accent">
+   <b>Целта не е да изглеждаш добре на тренировката.</b>
+   <span>Целта е правилното действие да стане естествено, когато времето е малко, пространството е ограничено и противникът е реален.</span>
+  </div>
+
+  <h2>6. От тренировката към мача</h2>
+  <p class="muted">
+   Истинският тест е преносът. В мач футболистът трябва да разпознае ситуацията
+   без треньорът да му казва какво следва. Затова индивидуалната работа трябва
+   да води към игрово поведение: правилно разположение, връзка с партньора,
+   преминаване и завършване. Точно там методиката свързва индивидуалната
+   подготовка с общия игрови модел.
+  </p>
+
+  <div class="card" style="margin-top:20px">
+   <span class="eyebrow">FOOTURA PLAYER · ОСНОВНА ФОРМУЛА</span>
+   <div class="grid4 theoryFormula">
+    <div><b>01</b><span>Разпознай</span></div>
+    <div><b>02</b><span>Избери</span></div>
+    <div><b>03</b><span>Изпълни</span></div>
+    <div><b>04</b><span>Провери в мача</span></div>
+   </div>
+  </div>
+ </article>
+</section>
+
+<section id="model" class="screen">
+ <div class="sectionHead"><div><h1>ИГРОВИ МОДЕЛ</h1><div class="muted">Общият език на футболиста в FOOTURA.</div></div><button class="secondary" onclick="openModal('Наръчник','Трите пласта са свързани: притежание и прогресия → преходи → защита и контрол. Във всяка ситуация футболистът разпознава, избира, изпълнява и оценява.')">▣ НАРЪЧНИК</button></div>
+ <div class="tabs"><button class="active" data-mtab="layers">3 ПЛАСТА</button><button data-mtab="principles">ПРИНЦИПИ</button><button data-mtab="role">МОЯТА РОЛЯ</button></div>
+ <div id="modelLayers" class="grid3 modelPanel">
+  <div class="card model"><div class="num">01</div><h2>Притежание и прогресия</h2><b class="green">Как изграждаме атаката?</b><p class="muted">Създавай превъзходство и напредвай контролирано.</p><ul><li>Прогресираща топка</li><li>Ширина и дълбочина</li><li>Трети човек</li></ul></div>
+  <div class="card model"><div class="num">02</div><h2>Преходи</h2><b class="orange">Какво правим след промяна на притежанието?</b><p class="muted">Реагирай първи и използвай неорганизираността.</p><ul><li>Контрапреса</li><li>Вертикалност</li><li>Стабилизация</li></ul></div>
+  <div class="card model"><div class="num">03</div><h2>Защита и контрол</h2><b class="blue">Как управляваме пространството?</b><p class="muted">Защитавай като част от свързана структура.</p><ul><li>Компактност</li><li>Комуникация</li><li>Опасни зони</li></ul></div>
+ </div>
+ <div id="modelPrinciples" class="grid3 modelPanel" style="display:none"></div>
+ <div id="modelRole" class="modelPanel" style="display:none"><div class="role" id="roleItems"></div></div>
+</section>
+
+<section id="progress" class="screen">
+ <div class="sectionHead"><div><h1>МОЯТ ПРОГРЕС</h1><div class="muted">Измерваме не само упражнението, а преноса в мача.</div></div><button class="secondary" onclick="toast('Оценката е синхронизирана локално')">↻ СИНХРОНИЗИРАНО</button></div>
+ <div class="grid2" style="margin-top:15px"><div class="card" style="text-align:center"><span class="eyebrow">ОБЩО НИВО</span><div class="circle" style="margin-top:16px">78</div><p class="muted">Функционално · развива се</p></div><div class="card"><span class="eyebrow">ПОКАЗАТЕЛИ</span><div id="metrics"></div></div></div>
+ <h2>НИВА НА УСВОЯВАНЕ</h2><div class="grid4"><div class="card"><b>01 · Начало</b><p class="muted">Чести грешки.</p></div><div class="card"><b>02 · Развива се</b><p class="muted">Частично стабилно.</p></div><div class="card"><b>03 · Функционално</b><p class="muted">Работи в нормална ситуация.</p></div><div class="card"><b>04 · Стабилно</b><p class="muted">Работи под натиск и в мач.</p></div></div>
+</section>
+
+<section id="match" class="screen">
+ <div class="sectionHead"><div><h1>СЛЕД МАЧА · 15 МИН</h1><div class="muted">Учене, не разпределяне на вина.</div></div><span class="tag">2 — 1 · 20 МАЙ</span></div>
+ <div class="card" style="margin-top:15px"><span class="eyebrow">КЛЮЧОВ МОМЕНТ</span><h2>78' · преход след загуба</h2><p class="muted">Какво се случи? Какво искахме? Какво правим следващия път?</p></div>
+ <div id="questions"></div><button class="primary" onclick="saveMatch()">ЗАПАЗИ РАЗБОРА</button>
+</section>
+
+<section id="plan" class="screen">
+ <div class="sectionHead"><div><h1>МОЯТ 30-ДНЕВЕН ПЛАН</h1><div class="muted">Една основна промяна. Измерим критерий.</div></div><span class="tag">АКТИВЕН</span></div>
+ <div class="card focus" style="margin-top:15px"><span class="eyebrow">ОСНОВНА ЦЕЛ</span><h2>Първо разпознавай ситуацията и избирай действие преди получаване.</h2><p class="muted">Критерий: ≥80% правилни решения преди/при получаване и видим пренос в мач.</p></div>
+ <h2>ЦИКЪЛ</h2><div class="grid4"><div class="card"><span class="eyebrow">СЕДМИЦА 1</span><h3>Сканиране</h3><p class="muted">Информация преди получаване.</p></div><div class="card"><span class="eyebrow">СЕДМИЦА 2</span><h3>Контрол</h3><p class="muted">Първо докосване в желана посока.</p></div><div class="card"><span class="eyebrow">СЕДМИЦА 3</span><h3>Натиск</h3><p class="muted">Решение под ограничено време.</p></div><div class="card"><span class="eyebrow">СЕДМИЦА 4</span><h3>Мач</h3><p class="muted">Проверка и корекция.</p></div></div>
+</section>
+
+<section id="profile" class="screen">
+ <div class="sectionHead"><div><h1>МОЯТ ПРОФИЛ</h1><div class="muted">Позиция, силни страни, дефицити и цели.</div></div><button class="primary" onclick="toast('Профилът е запазен')">ЗАПАЗИ</button></div>
+ <div class="grid2" style="margin-top:15px"><div class="card"><div class="profileHero"><div class="avatar">E</div><div><span class="tag">LW · КРИЛО</span><h2>Emil</h2><div class="muted">19 години</div></div></div></div><div class="card"><span class="eyebrow">КЛЮЧОВ ДЕФИЦИТ</span><h2>Скорост на решение под натиск</h2><p class="muted">Фокусът се променя според оценките и мачовия анализ.</p></div></div>
+ <h2>МОЯТА РОЛЯ</h2><div class="role" id="profileRole"></div>
+</section>
+
+</div>
+</main>
+</div>
+<div class="mobileNav"><button class="active" data-go="home"><i>⌂</i>Начало</button><button data-go="training"><i>⚽</i>Тренировки</button><button data-go="theory"><i>◈</i>Теория</button><button data-go="model"><i>▦</i>Модел</button><button data-go="progress"><i>↗</i>Прогрес</button><button data-go="profile"><i>♙</i>Профил</button></div>
+</div>
+
+<div class="modal" id="modal"><div class="modalBox"><button class="close" onclick="closeModal()">×</button><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
+
+<script>
+const exercises=[
+["Прихващане с тяло","Влизане в контакт","Без топка → с топка; коридор 3–4 м.","Източник: приложеното методическо ръководство"],
+["Посрещане на противник с топка","Влизане в контакт","Поглед в тялото; топката се следи с периферно зрение.","Източник: приложеното методическо ръководство"],
+["Подхождане към противник с топка","Влизане в контакт","Подход с максимална скорост.","Източник: приложеното методическо ръководство"],
+["Единоборства един срещу друг","Влизане в контакт","Атакуване отпред, отстрани и в гръб.","Източник: приложеното методическо ръководство"],
+["Игра с тяло","Влизане в контакт","Пазене на топката; отнемане на спорна топка.","Източник: приложеното методическо ръководство"],
+["Печелене на спорни топки","Влизане в контакт","Атакувай спорната топка в правилния момент.","Източник: приложеното методическо ръководство"],
+["Скачане за висока топка с глава","Влизане в контакт","Лактите на височина на раменете; предпазване, не удар.","Източник: приложеното методическо ръководство"],
+["Двойно поглеждане назад","Влизане в контакт","Поглед преди и след получаване на топката.","Източник: приложеното методическо ръководство"],
+["Един срещу вратар","Завършващи ситуации","Фронтално и по двата диагонала; дистанция 3–4 м; чукване встрани.","Източник: приложеното методическо ръководство"],
+["Един срещу защитник и вратар","Завършващи ситуации","1–2 финта пред защитника; не се набивай в него.","Източник: приложеното методическо ръководство"],
+["Един срещу двама защитници и вратар","Завършващи ситуации","Пусни топката между двамата и се врязвай между тях.","Източник: приложеното методическо ръководство"],
+["Двама срещу вратар","Завършващи ситуации","Разпръскване; силен и точен пас; никакво разиграване пред вратата.","Източник: приложеното методическо ръководство"],
+["Двама срещу един защитник и вратар","Завършващи ситуации","Свободният изостава, за да не бъде пресечена топката.","Източник: приложеното методическо ръководство"],
+["Трима срещу един и срещу двама защитници и вратар","Завършващи ситуации","Триъгълникът се спазва винаги.","Източник: приложеното методическо ръководство"],
+["Шутиране през човек","Завършващи ситуации","Топката се скрива от погледа на вратаря за миг.","Източник: приложеното методическо ръководство"],
+["Дузпа","Статични положения","Поглед към вратаря; топката с периферно зрение; стереотипно изпълнение.","Източник: приложеното методическо ръководство"],
+["Тъч","Статични положения","Топката на крак или глава за незабавно отиграване; не на гърди.","Източник: приложеното методическо ръководство"],
+["Фалове и корнери","Статични положения","Остри/простреляни топки; центриране към дузпата извън обсега на вратаря.","Източник: приложеното методическо ръководство"],
+["Играта на защитника","Специфични профили","Прихващане; игра с тяло; движение без топка.","Източник: приложеното методическо ръководство"],
+["Играта на халфа","Специфични профили","Притеснява; печели спорни топки; посреща; пресира; центрира остро; шутира през човек.","Източник: приложеното методическо ръководство"],
+["Играта на нападателя","Специфични профили","Пресира и затваря пространства; избягва пресата; открива пространства; стреля с едно докосване.","Източник: приложеното методическо ръководство"]
+];
+const principles=[
+["Ширина","Разтваряй защитната структура.","Минимум две активни опции по ширина."],["Дълбочина","Създавай заплаха зад последната линия.","Атака на дълбочината в подходящ момент."],["Трети човек","Отваряй нова линия за прогресия.","Комбинацията води до реално придвижване."],["Контрапреса","Реагирай веднага след загуба.","Първите 3–5 секунди имат ясна реакция."],["Компактност","Движи се като свързана структура.","Контролирани разстояния между линиите."],["Вертикалност","Когато е възможно, играй към опасна зона.","Прогрес без ненужен риск."]
+];
+const roles=["1v1","Атака на пространство","Ширина","Завършване","Преса","Преход"];
+let done=JSON.parse(localStorage.getItem("fp_done_v5")||"[]");
+
+function go(id,sub){
+ if(arguments[0]==="trials"){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));document.getElementById("trials")?.classList.add("active");loadTrials();return;}
+
+ document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+ const el=document.getElementById(id);if(!el)return;
+ el.classList.add("active");
+ document.querySelectorAll("[data-go]").forEach(x=>x.classList.toggle("active",x.dataset.go===id));
+ document.getElementById("crumb").textContent="FOOTURA PLAYER / "+({home:"НАЧАЛО",training:"ТРЕНИРОВКИ",theory:"ТЕОРИЯ",model:"ИГРОВИ МОДЕЛ",progress:"ПРОГРЕС",match:"СЛЕД МАЧА",plan:"МОЯТ ПЛАН",profile:"ПРОФИЛ"}[id]||id.toUpperCase());
+ if(id==="training"&&sub)trainingTab(sub);
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+function trainingTab(tab){
+ const map={today:"trainToday",exercises:"trainExercises",programs:"trainPrograms"};
+ document.querySelectorAll("#training button[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+ document.querySelectorAll("#training .trainPanel").forEach(p=>p.style.display="none");
+ const panel=document.getElementById(map[tab]);
+ if(panel) panel.style.display="block";
+ if(tab==="exercises") document.getElementById("allExercises").innerHTML=exercises.map((e,i)=>exerciseHTML(e,i)).join("");
+ if(tab==="programs") renderPrograms();
+}
+document.querySelectorAll("#training button[data-tab]").forEach(b=>b.addEventListener("click",()=>trainingTab(b.dataset.tab)));
+document.querySelectorAll("[data-mtab]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("[data-mtab]").forEach(x=>x.classList.toggle("active",x===b));
+ document.querySelectorAll(".modelPanel").forEach(x=>x.style.display="none");
+ document.getElementById({layers:"modelLayers",principles:"modelPrinciples",role:"modelRole"}[b.dataset.mtab]).style.display=b.dataset.mtab==="principles"?"grid":"block";
+}));
+document.querySelectorAll("[data-vfilter]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("[data-vfilter]").forEach(x=>x.classList.toggle("active",x===b));
+}));
+
+const exerciseInfo=[
+{criterion:"Изпълнява се стереотипно и на скорост, без мислене.",text:"Прихващането с тяло се работи първо без топка, а след това с топка, в коридор 3–4 м. Целта е действието да стане автоматично и да може да се изпълнява на скорост."},
+{criterion:"Поглед в тялото; топката с периферно зрение.",text:"При посрещане на противник с топка първо се наблюдава тялото на противника. Топката не трябва да отнема основния поглед — следи се с периферно зрение."},
+{criterion:"Подход на максимална скорост.",text:"При подхождане към противник с топка първото изискване в методиката е максимална скорост на приближаване."},
+{criterion:"Атакуване отпред, отстрани и в гръб.",text:"Упражнението обхваща единоборство срещу противник в три варианта: атака отпред, атака отстрани и атака в гръб."},
+{criterion:"Пазене на топка и отнемане на спорна топка.",text:"Играта с тяло е свързана с две действия: пазене на топката и използване на тялото при отнемане на спорна топка."},
+{criterion:"Отделно упражнение от каталога; методиката не дава допълнителна кратка инструкция в този раздел.",text:"„Печелене на спорни топки“ е самостоятелно упражнение в каталога. В предоставения текст няма допълнително разписана техника към заглавието, затова тук не добавям измислени указания."},
+{criterion:"Лактите на височина на раменете; предпазване, не удар.",text:"При скачане за висока топка лактите са на височина на раменете. Единият лакът сочи към главата на противника като предпазна мярка — не за удар."},
+{criterion:"Поглед преди и след получаването.",text:"Играчът трябва да погледне назад преди получаването на топката и отново след получаването. Това двойно поглеждане е част от самото упражнение."},
+{criterion:"Фронтално и по двата диагонала; 3–4 м; чукване встрани.",text:"Ситуацията срещу вратар се отработва фронтално и по двата диагонала. Спазва се дистанция 3–4 м, има задължително замахване и чукване на топката встрани, а не по диагонал."},
+{criterion:"1–2 финта пред защитника; не се набивай в него.",text:"При ситуацията един срещу защитник и вратар финтът се изпълнява пред защитника. Играчът не трябва да се набива директно в него."},
+{criterion:"Топката между двамата; врязване между тях.",text:"При двама защитници топката се пуска между тях, след което нападателят се врязва в пространството между двамата."},
+{criterion:"Разпръскване; силен и точен пас; без разиграване пред вратата.",text:"При двама срещу вратар играчите се разпръскват към двете греди, търси се силен и точен пас и не се допуска излишно разиграване пред вратата."},
+{criterion:"Свободният играч изостава, за да не бъде пресечена топката.",text:"При двама срещу един защитник и вратар свободният играч остава по-назад. Така се намалява възможността защитникът да пресече подаването."},
+{criterion:"Триъгълникът се спазва винаги.",text:"При трима нападатели срещу един или двама защитници и вратар основното изискване е да се запази триъгълникът. Формата може да се видоизменя, но не трябва да се разваля."},
+{criterion:"Топката се скрива от погледа на вратаря за миг.",text:"При шутиране през човек целта е за кратък момент топката да бъде скрита от погледа на вратаря от човек между тях."},
+{criterion:"Поглед към вратаря; топката с периферно зрение; стереотипно изпълнение.",text:"При дузпа играчът гледа вратаря в очите, а топката се следи с периферно зрение. Изпълнението трябва да стане стереотипно чрез стотици повторения."},
+{criterion:"На крак или глава за незабавно отиграване; не на гърди.",text:"При тъч топката се подава така, че да бъде готова за незабавно отиграване — на крак или глава. Подаването на гърди според методиката забавя действието и води до риск от контузии."},
+{criterion:"Остри и простреляни топки; центриране към дузпата извън обсега на вратаря.",text:"При фалове и корнери се търсят остри и простреляни топки. При центриране целевата зона е около дузпата, извън обсега на вратаря."},
+{criterion:"Прихващане; игра с тяло; движение без топка.",text:"Профилът на защитника в каталога се основава на три ключови действия: прихващане, игра с тяло и правилно движение без топка."},
+{criterion:"Притеснява; печели спорни топки; посреща; пресира; центрира остро; шутира през човек.",text:"Профилът на халфа включва активно притесняване, печелене на спорни топки, посрещане и правилно пресиране. В атака той трябва да може да центрира остро и да шутира изненадващо през човек."},
+{criterion:"Преса и затваряне на пространства; избягване на пресата; откриване на пространства; удар с едно докосване.",text:"Профилът на нападателя включва пресиране и затваряне на пространства в противниковата половина, избягване на пресата и откриване на пространства за развитие на атаката. Завършването е с едно докосване от различни позиции."}
+];
+
+function exerciseHTML(e,i){
+ return `<div class="exercise">
+   <div class="exNo">${String(i+1).padStart(2,"0")}</div>
+   <div class="thumb"><span>EXERCISE</span></div>
+   <div><b>${e[0]}</b><div class="muted">${e[1]} · ${e[2]}</div><div class="muted">Критерий: ${exerciseInfo[i].criterion}</div></div>
+   <div class="time">8–12 мин</div>
+   <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center">
+     <button class="infoBtn" onclick="event.stopPropagation();openExerciseInfo(${i})">ℹ ОБЯСНЕНИЕ</button>
+     <button class="check ${done.includes(i)?"done":""}" onclick="toggleDone(${i})">${done.includes(i)?"✓":""}</button>
+   </div>
+ </div>`;
+}
+
+function openExerciseInfo(i){
+ const e=exercises[i], x=exerciseInfo[i];
+ openModal(e[0],`
+  <div class="exerciseInfo">
+   <span class="tag">${e[1]}</span>
+   <h2 style="margin:14px 0 8px">${e[0]}</h2>
+   <p class="muted" style="font-size:16px;line-height:1.7">${x.text}</p>
+   <div class="card" style="margin-top:18px;border-color:var(--accent)">
+    <div class="eyebrow">КЛЮЧОВО ИЗИСКВАНЕ</div>
+    <p style="margin:8px 0 0;line-height:1.6">${x.criterion}</p>
+   </div>
+  </div>`);
+}
+
+function toggleDone(i){done.includes(i)?done=done.filter(x=>x!==i):done.push(i);localStorage.setItem("fp_done_v5",JSON.stringify(done));render();toast(done.includes(i)?"Упражнението е изпълнено":"Маркирането е премахнато")}
+function render(){
+ document.getElementById("homeExercises").innerHTML=exercises.slice(0,4).map((e,i)=>exerciseHTML(e,i)).join("");
+ document.getElementById("todayExercises").innerHTML=exercises.slice(0,4).map((e,i)=>exerciseHTML(e,i)).join("");
+ document.getElementById("allExercises").innerHTML=exercises.map((e,i)=>exerciseHTML(e,i)).join("");
+ document.getElementById("modelPrinciples").innerHTML=principles.map((p,i)=>`<div class="card click" onclick="openModal('${p[0]}','<b class=green>Поведение:</b> ${p[1]}<br><br><b class=green>Критерий:</b> ${p[2]}')"><span class="eyebrow">ПРИНЦИП ${String(i+1).padStart(2,"0")}</span><h2>${p[0]}</h2><p class="muted">${p[1]}</p><b class="green">Критерий →</b></div>`).join("");
+ document.getElementById("roleItems").innerHTML=roles.map((r,i)=>`<div class="roleItem"><b>${i+1}. ${r}</b><p class="muted">${["Избери посока, промени ритъма и създай отделяне.","Атакувай пространството с правилния тайминг.","Поддържай ширина, докато ситуацията не изисква промяна.","Подготви завършването с първото докосване.","Пресирай от правилен ъгъл, не тичай без възможност да влияеш.","След загуба първо реагирай; след спечелване оцени пътя напред."][i]}</p></div>`).join("");
+ document.getElementById("profileRole").innerHTML=document.getElementById("roleItems").innerHTML;
+ document.getElementById("metrics").innerHTML=[["Техника",82],["Решение",78],["Темпо",76],["Под натиск",74],["Пренос в мач",70]].map(m=>`<div class="metric"><b>${m[0]}</b><span>${m[1]}</span></div><div class="progressLine"><i style="width:${m[1]}%"></i></div>`).join("");
+ renderPrograms();
+
+}
+function renderPrograms(){
+ const el=document.getElementById("programs"); if(!el)return;
+ const programs=[
+  ["14 ДНИ","ПЪРВО ДОКОСВАНЕ","Контрол → ориентация → следващо действие.","Техника","01–05"],
+  ["21 ДНИ","РЕШЕНИЕ ПОД НАТИСК","Сканиране → контрол → избор → изпълнение.","Решение","02–06"],
+  ["21 ДНИ","1v1 АТАКА","Водене → финт → промяна на ритъма → отделяне.","1v1","06–09"],
+  ["21 ДНИ","ЗАВЪРШВАНЕ","Приемане → подготовка → удар → второ действие.","Завършване","10–12"],
+  ["21 ДНИ","КРИЛО","Ширина → 1v1 → движение зад линия → центриране.","Позиция","07–13"],
+  ["21 ДНИ","ЗАЩИТА 1v1","Дистанция → ъгъл → насочване → отнемане.","Защита","08,14,15"],
+  ["21 ДНИ","ПРЕХОДИ","Реакция → контрапреса → стабилизация → вертикалност.","Преход","14,19"],
+  ["21 ДНИ","ОРИЕНТАЦИЯ И ТРЕТИ ЧОВЕК","Сканиране → отворено тяло → комбинация → прогресия.","Решение","05,16,17"],
+  ["30 ДНИ","АТАКА НА ПРОСТРАНСТВО","Тайминг → движение → получаване → завършване.","Движение","18,20,21"],
+  ["30 ДНИ","ПЪЛЕН ИНДИВИДУАЛЕН ЦИКЪЛ","Техника → решение → 1v1 → преход → мачова проверка.","Интеграция","01–21"],
+  ["60 ДНИ","КРИЛО — РАЗВИТИЕ","Позиционна роля + технически дефицити + игрови пренос.","Позиция","01–21"],
+  ["90 ДНИ","FOOTURA PLAYER CORE","Цялостна програма за развитие по игровия модел.","Пълна програма","01–21"]
+ ];
+ el.innerHTML=programs.map((p,i)=>`
+ <div class="card click" style="min-height:245px">
+  <span class="tag">${p[0]}</span><div class="eyebrow" style="margin-top:13px">ПРОГРАМА ${String(i+1).padStart(2,"0")}</div>
+  <h2>${p[1]}</h2><p class="muted">${p[2]}</p>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
+   <span class="muted">${p[3]} · упражнения ${p[4]}</span>
+   <button class="primary" onclick="openProgram(${i})">ОТВОРИ</button>
+  </div>
+ </div>`).join("");
+}
+function openProgram(i){
+ const programs=[
+ ["Първо докосване","14 дни","Упражнения 01–05","Всеки ден: 2 технически серии + 1 игрова проверка. Критерий: контролът подготвя следващото действие."],
+ ["Решение под натиск","21 дни","Упражнения 02–06","Сканирай преди приемане и избери действие преди натиска. Критерий: ≥80% правилни решения."],
+ ["1v1 атака","21 дни","Упражнения 06–09","Финтът е средство за предимство. Критерий: отделяне и следващо действие, не просто успешен финт."],
+ ["Завършване","21 дни","Упражнения 10–12","Подготви удара с първото докосване и завърши с минимален брой действия."],
+ ["Крило","21 дни","Упражнения 07–13","Ширина, 1v1, атака на пространство и качество на последното действие."],
+ ["Защита 1v1","21 дни","Упражнения 08,14,15","Контролирай дистанцията, затвори желаната линия и избери момента за отнемане."],
+ ["Преходи","21 дни","Упражнения 14,19","Първите секунди след загуба определят реакцията на целия блок."],
+ ["Ориентация и трети човек","21 дни","Упражнения 05,16,17","Информация преди получаване → отворено тяло → комбинация → прогресия."],
+ ["Атака на пространство","30 дни","Упражнения 18,20,21","Разпознавай свободното пространство и избирай правилния момент за движение."],
+ ["Пълен индивидуален цикъл","30 дни","Упражнения 01–21","Последователност: цел → упражнение → критерий → тренировка → мач → анализ."],
+ ["Крило — развитие","60 дни","Упражнения 01–21","Позиционна програма с ротация на технически, тактически и мачови критерии."],
+ ["FOOTURA PLAYER CORE","90 дни","Упражнения 01–21","Пълна програма по игровия модел с периодична оценка и корекция."]
+ ];
+ const p=programs[i];
+ openModal(p[0],`<span class="tag">${p[1]}</span><h2 style="margin-top:14px">${p[2]}</h2><p class="muted">${p[3]}</p><div class="card" style="margin-top:15px"><b class="green">Цикъл</b><p class="muted">Изпълни → оцени → пренеси в игра → направи корекция → повтори.</p></div>`);
+}
+
+
+
+
+const localVideos = [
+ {file:"01_.mp4",title:"Първо докосване – квадрат",cat:"technique",exercise:"Упражнение 01 · Първо докосване – квадрат",note:"Подготви топката за следващото действие."}, {file:"02_.mp4",title:"Първо докосване под натиск",cat:"technique",exercise:"Упражнение 02 · Първо докосване под натиск",note:"Контролирай посоката преди защитникът да затвори."}, {file:"03_.mp4",title:"Пас с две докосвания",cat:"technique",exercise:"Упражнение 03 · Пас с две докосвания",note:"Приеми и подай с минимални излишни действия."}, {file:"04_.mp4",title:"Пас през врата",cat:"technique",exercise:"Упражнение 04 · Пас през врата",note:"Подай в движение и към следващото пространство."}, {file:"05_.mp4",title:"Сканиране преди приемане",cat:"decision",exercise:"Упражнение 05 · Сканиране преди приемане",note:"Виж информацията преди топката да пристигне."}, {file:"06_.mp4",title:"Водене с промяна на посока",cat:"technique",exercise:"Упражнение 06 · Водене с промяна на посока",note:"Дръж топката близо и промени ритъма."}, {file:"07_1v1.mp4",title:"1v1 – атака",cat:"1v1",exercise:"Упражнение 07 · 1v1 – атака",note:"Създай предимство, не просто движение."}, {file:"08_1v1.mp4",title:"1v1 – защита",cat:"defence",exercise:"Упражнение 08 · 1v1 – защита",note:"Управлявай дистанцията и посоката."}, {file:"09_.mp4",title:"Финт + ускорение",cat:"1v1",exercise:"Упражнение 09 · Финт + ускорение",note:"Използвай финта, за да се отделиш."}, {file:"10_.mp4",title:"Завършване след подаване",cat:"finish",exercise:"Упражнение 10 · Завършване след подаване",note:"Първото докосване трябва да подготви удара."}, {file:"11_.mp4",title:"Завършване с по-слаб крак",cat:"finish",exercise:"Упражнение 11 · Завършване с по-слаб крак",note:"Завърши контролирано и с двата крака."}, {file:"12_.mp4",title:"Удар след движение",cat:"finish",exercise:"Упражнение 12 · Удар след движение",note:"Атакувай зоната и завърши без излишно спиране."}, {file:"13_.mp4",title:"Центриране в движение",cat:"finish",exercise:"Упражнение 13 · Центриране в движение",note:"Достави топката към целева зона в движение."}, {file:"14_.mp4",title:"Пресиране отстрани",cat:"transition",exercise:"Упражнение 14 · Пресиране отстрани",note:"Затвори линията и насочи противника."}, {file:"15_.mp4",title:"Отнемане без фаул",cat:"defence",exercise:"Упражнение 15 · Отнемане без фаул",note:"Изчакай правилния момент за намеса."}, {file:"16_180.mp4",title:"Ориентация 180°",cat:"decision",exercise:"Упражнение 16 · Ориентация 180°",note:"Сканирай зад рамото и приеми в правилна посока."}, {file:"17_.mp4",title:"Трети човек",cat:"decision",exercise:"Упражнение 17 · Трети човек",note:"Пасът освобождава следващото движение."}, {file:"18_.mp4",title:"Атака на пространство",cat:"decision",exercise:"Упражнение 18 · Атака на пространство",note:"Таймингът на движението е част от решението."}, {file:"19_5.mp4",title:"Преход 5 секунди",cat:"transition",exercise:"Упражнение 19 · Преход 5 секунди",note:"Реагирай веднага след промяна на притежанието."}, {file:"20_.mp4",title:"Ситуационно решение – 3 опции",cat:"decision",exercise:"Упражнение 20 · Ситуационно решение – 3 опции",note:"Избери най-доброто от три възможности."}, {file:"21_.mp4",title:"Комплексна индивидуална серия",cat:"finish",exercise:"Упражнение 21 · Комплексна индивидуална серия",note:"Свържи приемане, решение, движение и завършване."}, ];
+
+
+
+
+
+
+function openModel(type){const x={possession:["Притежание и прогресия","Създавай превъзходство. Дай ширина и дълбочина. Търси прогресираща топка и третия човек."],transition:["Преходи","При загуба реагирай първи. При спечелване оцени има ли безопасен и смислен път напред."],defence:["Защита и контрол","Не преследвай автоматично топката. Управлявай пространството, дистанцията и връзката с блока."]}[type];openModal(x[0],x[1])}
+function openModal(title,body){document.getElementById("modalBody").innerHTML=`<span class="tag">FOOTURA PLAYER</span><h1 style="margin-top:10px">${title}</h1><div class="muted" style="font-size:15px;line-height:1.65;margin-top:15px">${body}</div>`;document.getElementById("modal").classList.add("open")}
+function closeModal(){document.getElementById("modal").classList.remove("open")}
+function startWorkout(){trainingTab("today");toast("Тренировката е започната")}
+function saveMatch(){const data=[0,1,2,3,4].map(i=>document.getElementById("q"+i)?.value||"");localStorage.setItem("fp_match_v5",JSON.stringify(data));toast("Следмачовият разбор е записан")}
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";clearTimeout(window._t);window._t=setTimeout(()=>e.style.display="none",2200)}
+render();
+trainingTab('today');
+
+
+</script>
+
+
+
+<script id="football-trials-js">
+const FOOTBALL_TRIALS = [
+  {
+    "id": "es-castellon-c-2026",
+    "title": "Casting abierto para Castellón C",
+    "club": "CD Castellón",
+    "country": "Spain",
+    "language": "Spanish",
+    "city": "Castellón",
+    "trial_start": "2026-08-12",
+    "trial_end": "2026-08-12",
+    "age_min": 18,
+    "age_max": 35,
+    "gender": "Men",
+    "status": "ACTIVE",
+    "description": "Открит casting за подбор на 18 играчи за Castellón C. След първоначален подбор 60 кандидати ще бъдат поканени на селекционни проби.",
+    "requirements": "Футболисти 18–35 години от провинция Castellón; кандидатстване до 8 август 2026, 14:00.",
+    "source_url": "https://cadenaser.com/comunitat-valenciana/2026/08/07/el-castellon-inicia-un-casting-abierto-para-seleccionar-los-18-jugadores-del-tercer-filial-radio-castellon/",
+    "source_name": "Cadena SER",
+    "verified_at": "2026-08-09T08:02:51.455666+00:00",
+    "date": "2026-08-12",
+    "trial_date": "2026-08-12",
+    "location": "Castellón",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "bg-marcet-2026",
+    "title": "MARCET Football Camp — 2026",
+    "club": "MARCET / Академия за футболно развитие",
+    "country": "Bulgaria",
+    "language": "Bulgarian",
+    "city": "Sofia",
+    "trial_start": "2026-06-24",
+    "trial_end": "2026-06-28",
+    "age_min": 9,
+    "age_max": 18,
+    "gender": "Mixed",
+    "status": "PAST",
+    "description": "Футболен камп в София с методика на Академия MARCET от Барселона; насочен към деца 9–18 години.",
+    "requirements": "Регистрация; публикувани възрастови групи и форма за записване.",
+    "source_url": "https://camp.football-academy.bg/marcet-camp/",
+    "source_name": "MARCET / Football Academy Bulgaria",
+    "verified_at": "2026-08-09T08:02:51.455666+00:00",
+    "date": "2026-06-24",
+    "trial_date": "2026-06-24 – 2026-06-28",
+    "location": "Sofia",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "bg-bft-2026",
+    "title": "Петдневни футболни проби",
+    "club": "БГ ФУТБОЛНИ ПРОБИ",
+    "country": "Bulgaria",
+    "language": "Bulgarian",
+    "city": "Sofia",
+    "trial_start": "2026-06-20",
+    "trial_end": "2026-06-24",
+    "gender": "Mixed",
+    "status": "PAST",
+    "description": "Петдневна програма с професионален тренировъчен цикъл, видео анализи, кондиционни тренировки и други елементи.",
+    "requirements": "Регистрация предварително.",
+    "source_url": "https://bgfootballtrials.com/petdnevni-probi/",
+    "source_name": "BG Football Trials",
+    "verified_at": "2026-08-09T08:02:51.455666+00:00",
+    "date": "2026-06-20",
+    "trial_date": "2026-06-20 – 2026-06-24",
+    "location": "Sofia",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "bg-bfu-2013-2026",
+    "title": "Национален кастинг за Академия БФС",
+    "club": "Български футболен съюз — Академия БФС",
+    "country": "Bulgaria",
+    "language": "Bulgarian",
+    "city": "Sofia",
+    "trial_start": "2026-06-24",
+    "trial_end": "2026-06-24",
+    "age_min": 12,
+    "age_max": 13,
+    "gender": "Boys",
+    "status": "PAST",
+    "description": "След регионални проби в осем града 25 момчета, родени през 2013 г., са избрани за тригодишна програма.",
+    "requirements": "Регионална селекция и финален кастинг.",
+    "source_url": "https://www.uefa.com/news-media/news/02a7-2135fe9fb108-8d426b7ab94c-1000--building-bulgaria-s-football-future/",
+    "source_name": "UEFA",
+    "verified_at": "2026-08-09T08:02:51.455666+00:00",
+    "date": "2026-06-24",
+    "trial_date": "2026-06-24",
+    "location": "Sofia",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "cn-cfa-2012-2026",
+    "title": "男子精英青少年球员全国训练营 / 选拔",
+    "club": "Chinese Football Association",
+    "country": "China",
+    "language": "Chinese",
+    "city": "China",
+    "trial_start": "2026-05-08",
+    "trial_end": "2026-06-04",
+    "age_min": 13,
+    "age_max": 14,
+    "gender": "Boys",
+    "status": "PAST",
+    "description": "Национален тренировъчен лагер и селекция за набор 2012, включително избор на 24 играчи за тренировъчно турне във Великобритания.",
+    "requirements": "Набор 2012; участие чрез системата на CFA.",
+    "source_url": "https://www.thecfa.cn/qxzxxtzggjxtz/20260708/37852.html",
+    "source_name": "Chinese Football Association",
+    "verified_at": "2026-08-09T08:02:51.455666+00:00",
+    "date": "2026-05-08",
+    "trial_date": "2026-05-08 – 2026-06-04",
+    "location": "China",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "cn-cfa-2013-2026",
+    "title": "男子精英青少年球员大区训练营",
+    "club": "Chinese Football Association",
+    "country": "China",
+    "language": "Chinese",
+    "city": "Dalian",
+    "trial_start": "2026-06-12",
+    "trial_end": "2026-06-23",
+    "age_min": 12,
+    "age_max": 13,
+    "gender": "Boys",
+    "status": "PAST",
+    "description": "Регионален елитен лагер за набор 2013 като част от системата за селекция и развитие.",
+    "requirements": "Набор 2013; селекция чрез CFA.",
+    "source_url": "https://www.thecfa.cn/qxzxxtzggjxtz/20260708/37846.html",
+    "source_name": "Chinese Football Association",
+    "verified_at": "2026-08-09T08:02:51.455666+00:00",
+    "date": "2026-06-12",
+    "trial_date": "2026-06-12 – 2026-06-23",
+    "location": "Dalian",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-fulham-girls-u1314-2026",
+    "title": "Girls Development Centre Open Trials — U13/U14",
+    "club": "Fulham FC",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Three Rivers Academy",
+    "trial_start": "2026-08-10",
+    "trial_end": "2026-08-10",
+    "age_min": 13,
+    "age_max": 14,
+    "gender": "Girls",
+    "status": "ACTIVE",
+    "description": "Open trial за опитни U13/U14 играчи с възможност за присъединяване към Girls Development Centre.",
+    "requirements": "Опитни U13/U14 играчи; регистрация през Fulham Soccer Schools. Сесията е на 10 август 2026, 09:15–10:45.",
+    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
+    "source_name": "Fulham FC Soccer Schools",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-10",
+    "trial_date": "2026-08-10",
+    "location": "Three Rivers Academy",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-fulham-gk-u7u10-2026",
+    "title": "Three Rivers Goalkeeper School — Open Trial U7–U10",
+    "club": "Fulham FC",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Three Rivers Academy",
+    "trial_start": "2026-08-10",
+    "trial_end": "2026-08-10",
+    "age_min": 7,
+    "age_max": 10,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Open trial за вратари U7–U10 с възможност за присъединяване към Player Development Centre.",
+    "requirements": "Вратари U7–U10; 10 август 2026, 11:00–12:15.",
+    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
+    "source_name": "Fulham FC Soccer Schools",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-10",
+    "trial_date": "2026-08-10",
+    "location": "Three Rivers Academy",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-fulham-girls-gk-u9u11-2026",
+    "title": "Girls Goalkeeper School Trial — U9–U11",
+    "club": "Fulham FC",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Three Rivers Academy",
+    "trial_start": "2026-08-10",
+    "trial_end": "2026-08-10",
+    "age_min": 9,
+    "age_max": 11,
+    "gender": "Girls",
+    "status": "ACTIVE",
+    "description": "Open trial за момичета-вратари U9–U11.",
+    "requirements": "U9/U10/U11; 10 август 2026, 11:00–12:15.",
+    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
+    "source_name": "Fulham FC Soccer Schools",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-10",
+    "trial_date": "2026-08-10",
+    "location": "Three Rivers Academy",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-fulham-u14-2026",
+    "title": "Player Development Centre Open Trial — U14",
+    "club": "Fulham FC",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Three Rivers Academy",
+    "trial_start": "2026-08-10",
+    "trial_end": "2026-08-10",
+    "age_min": 14,
+    "age_max": 14,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Open trial за опитни U14 играчи за Player Development Centre.",
+    "requirements": "Опитни U14 играчи; 10 август 2026, 09:15–10:45.",
+    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
+    "source_name": "Fulham FC Soccer Schools",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-10",
+    "trial_date": "2026-08-10",
+    "location": "Three Rivers Academy",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-fulham-u8-2026",
+    "title": "Player Development Centre Open Trial — U8",
+    "club": "Fulham FC",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Three Rivers Academy",
+    "trial_start": "2026-08-10",
+    "trial_end": "2026-08-10",
+    "age_min": 8,
+    "age_max": 8,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Open trial за опитни U8 играчи за Player Development Centre.",
+    "requirements": "Опитни U8 играчи; 10 август 2026, 11:00–12:30.",
+    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
+    "source_name": "Fulham FC Soccer Schools",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-10",
+    "trial_date": "2026-08-10",
+    "location": "Three Rivers Academy",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "es-apex-madrid-2026",
+    "title": "APEX ATLAS Madrid Football Tryout",
+    "club": "APEX ATLAS Football High Performance",
+    "country": "Spain",
+    "language": "French/Spanish",
+    "city": "Madrid",
+    "trial_start": "2026-08-21",
+    "trial_end": "2026-08-27",
+    "age_min": 11,
+    "age_max": 23,
+    "gender": "Boys",
+    "status": "ACTIVE",
+    "description": "7-дневна футболна детекция в Мадрид за млади играчи 11–23 г., с възможности за наблюдение от клубове партньори.",
+    "requirements": "Момчета 11–23; регистрация предварително.",
+    "source_url": "https://www.detectionfootball.com/apex-atlas-madrid-detection-clinic",
+    "source_name": "Detection Football",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-21",
+    "trial_date": "2026-08-21 – 2026-08-27",
+    "location": "Madrid",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "fr-ppf-u12u13-2026",
+    "title": "PPF U12-U13 G/F — Journée de détection",
+    "club": "District Drôme-Ardèche de Football",
+    "country": "France",
+    "language": "French",
+    "city": "Roussillon",
+    "trial_start": "2026-08-26",
+    "trial_end": "2026-08-26",
+    "age_min": 12,
+    "age_max": 13,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Ден на селекция за Centres de Perfectionnement U12-U13 за момчета и момичета.",
+    "requirements": "U12/U13; 26 август 2026, Stade de la Terre Rouge, Roussillon.",
+    "source_url": "https://drome-ardeche.fff.fr/simple/ppf-u12-u13-g-f-mercredi-26-aout-2026-roussillon/",
+    "source_name": "District Drôme-Ardèche de Football / FFF",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-26",
+    "trial_date": "2026-08-26",
+    "location": "Roussillon",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "fr-onlyway-senior-2026",
+    "title": "Détection Senior",
+    "club": "Only Way Football",
+    "country": "France",
+    "language": "French",
+    "city": "Île-de-France",
+    "trial_start": "2026-08-23",
+    "trial_end": "2026-08-23",
+    "gender": "Men",
+    "status": "ACTIVE",
+    "description": "Селекция за senior футболисти в Île-de-France.",
+    "requirements": "Senior; предварителна резервация.",
+    "source_url": "https://onlywayfootball.fr/",
+    "source_name": "Only Way Football",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-23",
+    "trial_date": "2026-08-23",
+    "location": "Île-de-France",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "fr-onlyway-u17u19u15-2026",
+    "title": "Détection U19 – U17 – U15",
+    "club": "Only Way Football",
+    "country": "France",
+    "language": "French",
+    "city": "Île-de-France",
+    "trial_start": "2026-08-23",
+    "trial_end": "2026-08-23",
+    "age_min": 15,
+    "age_max": 19,
+    "gender": "Men",
+    "status": "ACTIVE",
+    "description": "Селекция за U15, U17 и U19 футболисти в Île-de-France.",
+    "requirements": "U15/U17/U19; предварителна резервация.",
+    "source_url": "https://onlywayfootball.fr/",
+    "source_name": "Only Way Football",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-23",
+    "trial_date": "2026-08-23",
+    "location": "Île-de-France",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "pt-sportix-europe-2026",
+    "title": "Pruebas Élite de Sportix — Europa",
+    "club": "Sportix / Club Colón de Colonia Caroya",
+    "country": "Spain/Europe",
+    "language": "Spanish",
+    "city": "Europe",
+    "trial_start": "2026-08-09",
+    "trial_end": "2026-08-16",
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "8-дневна програма за реална конкурентна проба пред scouts и клубове в Европа.",
+    "requirements": "Максимум двама играчи на позиция; регистрация предварително.",
+    "source_url": "https://www.sportixgroup.com/programa-pruebas-colon-sportix/",
+    "source_name": "Sportix Group",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-09",
+    "trial_date": "2026-08-09 – 2026-08-16",
+    "location": "Europe",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-protec-2026",
+    "title": "Youth FC Team Trials",
+    "club": "Protec Football Academy",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "London / Hertfordshire / Essex / Buckinghamshire / Bedfordshire / Berkshire",
+    "trial_start": "2026-07-01",
+    "trial_end": "2026-08-31",
+    "age_min": 8,
+    "age_max": 16,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Седмични футболни проби през юли и август за играчи с високо ниво и връзки с професионални клубове.",
+    "requirements": "Високо ниво; district/county или силен Sunday League футбол; регистрация и родителско съгласие за лица под 16 г.",
+    "source_url": "https://protec.awdprojects.co.uk/course/protec-team-trials-10/",
+    "source_name": "Protec Football Academy",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-07-01",
+    "trial_date": "2026-07-01 – 2026-08-31",
+    "location": "London / Hertfordshire / Essex / Buckinghamshire / Bedfordshire / Berkshire",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-premier-u16-2026",
+    "title": "U16 Football Trial Program",
+    "club": "Premier Football UK",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "UK",
+    "trial_start": "2026-08-09",
+    "trial_end": "2026-08-18",
+    "age_min": 16,
+    "age_max": 16,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "9-дневна програма за U16 футболни проби през август 2026.",
+    "requirements": "U16; регистрация предварително.",
+    "source_url": "https://premierfootballuk.com/",
+    "source_name": "Premier Football UK",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-09",
+    "trial_date": "2026-08-09 – 2026-08-18",
+    "location": "UK",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "uk-premier-women-2026",
+    "title": "15+ Women’s Football Trial",
+    "club": "Premier Football UK",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "UK",
+    "trial_start": "2026-08-03",
+    "trial_end": "2026-08-10",
+    "age_min": 15,
+    "age_max": 99,
+    "gender": "Women",
+    "status": "ACTIVE",
+    "description": "7-дневна програма за женски футболни проби.",
+    "requirements": "Жени 15+; регистрация предварително.",
+    "source_url": "https://premierfootballuk.com/",
+    "source_name": "Premier Football UK",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-03",
+    "trial_date": "2026-08-03 – 2026-08-10",
+    "location": "UK",
+    "contact": "Не е посочен."
+  },
+  {
+    "id": "ca-milton-2026",
+    "title": "Open Trials — Competitive Program",
+    "club": "Milton Magic FC",
+    "country": "Canada",
+    "language": "English",
+    "city": "Milton, Ontario",
+    "trial_start": "2026-08-01",
+    "trial_end": "2026-08-31",
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Open trials за Competitive Program, започващи през август 2026; точните дати са в процес на определяне.",
+    "requirements": "Регистрация; $20 такса според публикуваната обява.",
+    "source_url": "https://www.miltonmagic.com/tryouts/",
+    "source_name": "Milton Magic FC",
+    "verified_at": "2026-08-09T08:03:07.292723+00:00",
+    "date": "2026-08-01",
+    "trial_date": "2026-08-01 – 2026-08-31",
+    "location": "Milton, Ontario",
+    "contact": "Не е посочен."
+  }
+];
+let trialsTab="active";
+function escTrial(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+function trialDate(v){if(!v)return "Дата не е посочена";const d=new Date(v);return isNaN(d)?"Дата не е посочена":d.toLocaleDateString("bg-BG",{day:"2-digit",month:"2-digit",year:"numeric"});}
+function renderTrials(){
+ const list=document.getElementById("trialsList"); if(!list)return;
+ const today=new Date(); today.setHours(0,0,0,0);
+ const filtered=FOOTBALL_TRIALS.filter(t=>{
+   const end=t.trial_end ? new Date(t.trial_end+"T23:59:59") : (t.date ? new Date(t.date+"T23:59:59") : null);
+   const active=end ? end>=today : (t.status==="ACTIVE");
+   return trialsTab==="active" ? active : !active;
+ });
+ if(!filtered.length){list.innerHTML='<div class="trialEmpty">Няма налични записи в този раздел.</div>';return;}
+ list.innerHTML=filtered.map(t=>`<article class="trialCard">
+  <div class="trialTop"><div><div class="trialClub">${escTrial(t.club)}</div><div class="trialTitle">${escTrial(t.title)}</div></div>
+  <span class="tag">${trialsTab==="active"?"АКТУАЛНА":"МИНАЛА"}</span></div>
+  <div class="trialMeta"><span class="trialPill">📅 ${escTrial(t.trial_date||trialDate(t.date))}</span><span class="trialPill">📍 ${escTrial(t.location||"—")}</span><span class="trialPill">🌍 ${escTrial(t.country||"—")}</span><span class="trialPill">文 ${escTrial(t.language||"—")}</span></div>
+  <div class="trialDesc">${escTrial(t.description||"")}</div>
+  <div class="trialRequirements"><b>Изисквания:</b> ${escTrial(t.requirements||"Не са посочени.")}</div>
+  ${t.source_url?`<div class="trialSource"><a class="trialSourceLink" href="${escTrial(t.source_url)}" target="_blank" rel="noopener noreferrer">↗ Първоизточник · отвори в нов прозорец</a></div>`:""}
+ </article>`).join("");
+}
+async function loadTrials(){
+ const st=document.getElementById("trialsStatus"); if(st)st.textContent="ФУТБОЛНИ ПРОБИ";
+ renderTrials();
+}
+document.addEventListener("DOMContentLoaded", loadTrials);
+document.addEventListener("click",e=>{
+ const b=e.target.closest("[data-trialtab]"); if(!b)return;
+ document.querySelectorAll("[data-trialtab]").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active"); trialsTab=b.dataset.trialtab; renderTrials();
+});
+</script>
+</body>
+</html>
