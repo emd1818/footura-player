@@ -1,28 +1,38 @@
 name: FOOTURA Football Trials Daily Update
 
 on:
-  schedule:
-    - cron: '15 2 * * *'
   workflow_dispatch:
+  schedule:
+    - cron: "15 2 * * *"
 
 jobs:
   update-trials:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
-      - name: Crawl 7 languages
-        run: python crawler/crawl_trials.py
+      - name: Install dependencies
+        run: |
+          if [ -f crawler/requirements.txt ]; then
+            pip install -r crawler/requirements.txt
+          fi
 
-      - name: Commit updated database
+      - name: Run football trials crawler
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python crawler/crawl_trials.py
+
+      - name: Save updated database
         run: |
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
