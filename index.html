@@ -100,36 +100,25 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
   <button data-go="theory"><span class="navIcon">◈</span>Теория</button>
   <button data-go="trials"><span class="navIcon">⚽</span>ФУТБОЛНИ ПРОБИ</button>
   <button data-go="model"><span class="navIcon">▦</span>Игрови модел</button>
-  <button data-go="progress"><span class="navIcon">↗</span>Прогрес</button>
-  <button data-go="match"><span class="navIcon">☷</span>След мача</button>
-  <button data-go="profile"><span class="navIcon">♙</span>Профил</button>
  </nav>
- <div class="sidePlayer"><div class="mini"><div class="avatar">E</div><div><b>Emil</b><br><small>Крило · LW · Ниво 78</small></div></div></div>
-</aside>
+ </aside>
 
 <main>
-<header class="top"><div class="crumb" id="crumb">FOOTURA PLAYER / НАЧАЛО</div><div class="topActions"><button class="iconBtn" onclick="toast('Няма нови известия')">♧</button><button class="iconBtn" onclick="go('profile')">●</button></div></header>
+<header class="top"><div class="crumb" id="crumb">FOOTURA PLAYER / НАЧАЛО</div><div class="topActions"><button class="iconBtn" onclick="toast('Няма нови известия')">♧</button></div></header>
 <div class="content">
 
 <section id="home" class="screen active">
- <div class="grid2">
-  <div class="card"><div class="profileHero"><div class="avatar">E</div><div><span class="tag">LW · КРИЛО</span><h2>Emil</h2><div class="muted">19 години · индивидуален профил</div></div><div class="score"><small>НИВО</small><b>78</b><small>/100</small></div></div></div>
-  <div class="card focus"><span class="tag">TODAY'S FOCUS</span><h2>Първо <span class="green">разпознай</span> → после <span class="green">избери</span> → изпълни.</h2><p class="muted">Днешен фокус: сканиране, ширина, скорост на решение и 1v1.</p><button class="primary" onclick="go('plan')">ВИЖ МОЯТА ЦЕЛ →</button></div>
- </div>
- <div class="quick">
-  <button onclick="go('plan')"><b>🎯 Моята цел</b><span class="muted">30-дневен цикъл</span></button>
-  <button onclick="go('training')"><b>⚽ Тренировка</b><span class="muted">4 упражнения днес</span></button>
-  <button onclick="go('match')"><b>☷ След мача</b><span class="muted">15 минути анализ</span></button>
- </div>
- <div class="sectionHead"><h2>ТВОЯТ ИГРОВИ МОДЕЛ</h2><button class="link" onclick="go('model')">ВИЖ МОДЕЛА →</button></div>
+ <div class="card focus"><span class="tag">FOOTURA PLAYER</span><h1 style="font-size:34px;margin:16px 0 8px">Футболна методика, упражнения и възможности</h1><p class="muted">Информационна платформа за игровия модел, тренировъчните упражнения, методиката и актуалните футболни проби.</p><div style="margin-top:18px"><button class="primary" onclick="go('training')">ТРЕНИРОВКИ →</button> <button class="secondary" onclick="go('trials')">ФУТБОЛНИ ПРОБИ →</button></div></div>
+ <div class="sectionHead"><h2>ИГРОВИ МОДЕЛ</h2><button class="link" onclick="go('model')">ВИЖ МОДЕЛА →</button></div>
  <div class="grid3">
   <div class="card model click" onclick="openModel('possession')"><div class="num">01</div><h3>Притежание и прогресия</h3><p class="muted">Създавай превъзходство и напредвай контролирано.</p><ul><li>Ширина</li><li>Дълбочина</li><li>Трети човек</li></ul></div>
   <div class="card model click" onclick="openModel('transition')"><div class="num">02</div><h3>Преходи</h3><p class="muted">Реагирай първи след загуба или спечелване.</p><ul><li>Контрапреса</li><li>Вертикалност</li><li>Стабилизация</li></ul></div>
   <div class="card model click" onclick="openModel('defence')"><div class="num">03</div><h3>Защита и контрол</h3><p class="muted">Управлявай пространството като част от блока.</p><ul><li>Компактност</li><li>Комуникация</li><li>Опасни зони</li></ul></div>
  </div>
- <div class="sectionHead"><h2>ДНЕШНА ТРЕНИРОВКА</h2><button class="link" onclick="go('training')">ОТВОРИ →</button></div>
+ <div class="sectionHead"><h2>ТРЕНИРОВКИ</h2><button class="link" onclick="go('training')">ОТВОРИ →</button></div>
  <div class="card" id="homeExercises"></div>
- <div class="grid2" style="margin-top:13px"><div class="card"><span class="eyebrow">СЕДМИЧЕН ПРОГРЕС</span><div style="display:flex;align-items:center;gap:18px;margin-top:10px"><strong style="font-size:44px;color:var(--accent)">85%</strong><span class="muted">6 от 7 дни<br>с изпълнен фокус.</span></div></div><div class="card"><span class="eyebrow">ПОСЛЕДЕН МАЧ</span><h2 style="font-size:30px;margin:8px 0">2 — 1</h2><span class="muted">Твоя оценка</span><div class="green" style="font-size:25px;margin-top:5px">★★★★<span style="color:#475565">★</span></div></div></div>
+ <div class="sectionHead"><h2>ФУТБОЛНИ ПРОБИ</h2><button class="link" onclick="go('trials')">ОТВОРИ →</button></div>
+ <div class="card"><p class="muted">Актуални и минали възможности от клубове, академии, агенции, showcases, camps и други организатори.</p></div>
 </section>
 
 <section id="training" class="screen">
@@ -286,35 +275,15 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
  <div id="modelPrinciples" class="grid3 modelPanel" style="display:none"></div>
  <div id="modelRole" class="modelPanel" style="display:none"><div class="role" id="roleItems"></div></div>
 </section>
-
-<section id="progress" class="screen">
- <div class="sectionHead"><div><h1>МОЯТ ПРОГРЕС</h1><div class="muted">Измерваме не само упражнението, а преноса в мача.</div></div><button class="secondary" onclick="toast('Оценката е синхронизирана локално')">↻ СИНХРОНИЗИРАНО</button></div>
- <div class="grid2" style="margin-top:15px"><div class="card" style="text-align:center"><span class="eyebrow">ОБЩО НИВО</span><div class="circle" style="margin-top:16px">78</div><p class="muted">Функционално · развива се</p></div><div class="card"><span class="eyebrow">ПОКАЗАТЕЛИ</span><div id="metrics"></div></div></div>
- <h2>НИВА НА УСВОЯВАНЕ</h2><div class="grid4"><div class="card"><b>01 · Начало</b><p class="muted">Чести грешки.</p></div><div class="card"><b>02 · Развива се</b><p class="muted">Частично стабилно.</p></div><div class="card"><b>03 · Функционално</b><p class="muted">Работи в нормална ситуация.</p></div><div class="card"><b>04 · Стабилно</b><p class="muted">Работи под натиск и в мач.</p></div></div>
-</section>
-
-<section id="match" class="screen">
- <div class="sectionHead"><div><h1>СЛЕД МАЧА · 15 МИН</h1><div class="muted">Учене, не разпределяне на вина.</div></div><span class="tag">2 — 1 · 20 МАЙ</span></div>
- <div class="card" style="margin-top:15px"><span class="eyebrow">КЛЮЧОВ МОМЕНТ</span><h2>78' · преход след загуба</h2><p class="muted">Какво се случи? Какво искахме? Какво правим следващия път?</p></div>
- <div id="questions"></div><button class="primary" onclick="saveMatch()">ЗАПАЗИ РАЗБОРА</button>
-</section>
-
 <section id="plan" class="screen">
  <div class="sectionHead"><div><h1>МОЯТ 30-ДНЕВЕН ПЛАН</h1><div class="muted">Една основна промяна. Измерим критерий.</div></div><span class="tag">АКТИВЕН</span></div>
  <div class="card focus" style="margin-top:15px"><span class="eyebrow">ОСНОВНА ЦЕЛ</span><h2>Първо разпознавай ситуацията и избирай действие преди получаване.</h2><p class="muted">Критерий: ≥80% правилни решения преди/при получаване и видим пренос в мач.</p></div>
  <h2>ЦИКЪЛ</h2><div class="grid4"><div class="card"><span class="eyebrow">СЕДМИЦА 1</span><h3>Сканиране</h3><p class="muted">Информация преди получаване.</p></div><div class="card"><span class="eyebrow">СЕДМИЦА 2</span><h3>Контрол</h3><p class="muted">Първо докосване в желана посока.</p></div><div class="card"><span class="eyebrow">СЕДМИЦА 3</span><h3>Натиск</h3><p class="muted">Решение под ограничено време.</p></div><div class="card"><span class="eyebrow">СЕДМИЦА 4</span><h3>Мач</h3><p class="muted">Проверка и корекция.</p></div></div>
 </section>
-
-<section id="profile" class="screen">
- <div class="sectionHead"><div><h1>МОЯТ ПРОФИЛ</h1><div class="muted">Позиция, силни страни, дефицити и цели.</div></div><button class="primary" onclick="toast('Профилът е запазен')">ЗАПАЗИ</button></div>
- <div class="grid2" style="margin-top:15px"><div class="card"><div class="profileHero"><div class="avatar">E</div><div><span class="tag">LW · КРИЛО</span><h2>Emil</h2><div class="muted">19 години</div></div></div></div><div class="card"><span class="eyebrow">КЛЮЧОВ ДЕФИЦИТ</span><h2>Скорост на решение под натиск</h2><p class="muted">Фокусът се променя според оценките и мачовия анализ.</p></div></div>
- <h2>МОЯТА РОЛЯ</h2><div class="role" id="profileRole"></div>
-</section>
-
 </div>
 </main>
 </div>
-<div class="mobileNav"><button class="active" data-go="home"><i>⌂</i>Начало</button><button data-go="training"><i>⚽</i>Тренировки</button><button data-go="theory"><i>◈</i>Теория</button><button data-go="model"><i>▦</i>Модел</button><button data-go="progress"><i>↗</i>Прогрес</button><button data-go="profile"><i>♙</i>Профил</button></div>
+<div class="mobileNav"><button class="active" data-go="home"><i>⌂</i>Начало</button><button data-go="training"><i>⚽</i>Тренировки</button><button data-go="theory"><i>◈</i>Теория</button><button data-go="model"><i>▦</i>Модел</button></div>
 </div>
 
 <div class="modal" id="modal"><div class="modalBox"><button class="close" onclick="closeModal()">×</button><div id="modalBody"></div></div></div><div class="toast" id="toast"></div>
@@ -356,7 +325,7 @@ function go(id,sub){
  const el=document.getElementById(id);if(!el)return;
  el.classList.add("active");
  document.querySelectorAll("[data-go]").forEach(x=>x.classList.toggle("active",x.dataset.go===id));
- document.getElementById("crumb").textContent="FOOTURA PLAYER / "+({home:"НАЧАЛО",training:"ТРЕНИРОВКИ",theory:"ТЕОРИЯ",model:"ИГРОВИ МОДЕЛ",progress:"ПРОГРЕС",match:"СЛЕД МАЧА",plan:"МОЯТ ПЛАН",profile:"ПРОФИЛ"}[id]||id.toUpperCase());
+ document.getElementById("crumb").textContent="FOOTURA PLAYER / "+({home:"НАЧАЛО",training:"ТРЕНИРОВКИ",theory:"ТЕОРИЯ",model:"ИГРОВИ МОДЕЛ",trials:"ФУТБОЛНИ ПРОБИ",plan:"МЕТОДИКА"}[id]||id.toUpperCase());
  if(id==="training"&&sub)trainingTab(sub);
  window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -514,7 +483,7 @@ trainingTab('today');
 
 
 <script id="football-trials-js">
-const FOOTBALL_TRIALS = [
+const FALLBACK_TRIALS = [
   {
     "id": "es-castellon-c-2026",
     "title": "Casting abierto para Castellón C",
@@ -532,11 +501,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Футболисти 18–35 години от провинция Castellón; кандидатстване до 8 август 2026, 14:00.",
     "source_url": "https://cadenaser.com/comunitat-valenciana/2026/08/07/el-castellon-inicia-un-casting-abierto-para-seleccionar-los-18-jugadores-del-tercer-filial-radio-castellon/",
     "source_name": "Cadena SER",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00",
-    "date": "2026-08-12",
-    "trial_date": "2026-08-12",
-    "location": "Castellón",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
     "id": "bg-marcet-2026",
@@ -555,11 +520,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Регистрация; публикувани възрастови групи и форма за записване.",
     "source_url": "https://camp.football-academy.bg/marcet-camp/",
     "source_name": "MARCET / Football Academy Bulgaria",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00",
-    "date": "2026-06-24",
-    "trial_date": "2026-06-24 – 2026-06-28",
-    "location": "Sofia",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
     "id": "bg-bft-2026",
@@ -576,11 +537,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Регистрация предварително.",
     "source_url": "https://bgfootballtrials.com/petdnevni-probi/",
     "source_name": "BG Football Trials",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00",
-    "date": "2026-06-20",
-    "trial_date": "2026-06-20 – 2026-06-24",
-    "location": "Sofia",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
     "id": "bg-bfu-2013-2026",
@@ -599,11 +556,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Регионална селекция и финален кастинг.",
     "source_url": "https://www.uefa.com/news-media/news/02a7-2135fe9fb108-8d426b7ab94c-1000--building-bulgaria-s-football-future/",
     "source_name": "UEFA",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00",
-    "date": "2026-06-24",
-    "trial_date": "2026-06-24",
-    "location": "Sofia",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
     "id": "cn-cfa-2012-2026",
@@ -622,11 +575,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Набор 2012; участие чрез системата на CFA.",
     "source_url": "https://www.thecfa.cn/qxzxxtzggjxtz/20260708/37852.html",
     "source_name": "Chinese Football Association",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00",
-    "date": "2026-05-08",
-    "trial_date": "2026-05-08 – 2026-06-04",
-    "location": "China",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
     "id": "cn-cfa-2013-2026",
@@ -645,11 +594,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Набор 2013; селекция чрез CFA.",
     "source_url": "https://www.thecfa.cn/qxzxxtzggjxtz/20260708/37846.html",
     "source_name": "Chinese Football Association",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00",
-    "date": "2026-06-12",
-    "trial_date": "2026-06-12 – 2026-06-23",
-    "location": "Dalian",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
     "id": "uk-fulham-girls-u1314-2026",
@@ -668,103 +613,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Опитни U13/U14 играчи; регистрация през Fulham Soccer Schools. Сесията е на 10 август 2026, 09:15–10:45.",
     "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
     "source_name": "Fulham FC Soccer Schools",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-10",
-    "trial_date": "2026-08-10",
-    "location": "Three Rivers Academy",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "uk-fulham-gk-u7u10-2026",
-    "title": "Three Rivers Goalkeeper School — Open Trial U7–U10",
-    "club": "Fulham FC",
-    "country": "United Kingdom",
-    "language": "English",
-    "city": "Three Rivers Academy",
-    "trial_start": "2026-08-10",
-    "trial_end": "2026-08-10",
-    "age_min": 7,
-    "age_max": 10,
-    "gender": "Mixed",
-    "status": "ACTIVE",
-    "description": "Open trial за вратари U7–U10 с възможност за присъединяване към Player Development Centre.",
-    "requirements": "Вратари U7–U10; 10 август 2026, 11:00–12:15.",
-    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
-    "source_name": "Fulham FC Soccer Schools",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-10",
-    "trial_date": "2026-08-10",
-    "location": "Three Rivers Academy",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "uk-fulham-girls-gk-u9u11-2026",
-    "title": "Girls Goalkeeper School Trial — U9–U11",
-    "club": "Fulham FC",
-    "country": "United Kingdom",
-    "language": "English",
-    "city": "Three Rivers Academy",
-    "trial_start": "2026-08-10",
-    "trial_end": "2026-08-10",
-    "age_min": 9,
-    "age_max": 11,
-    "gender": "Girls",
-    "status": "ACTIVE",
-    "description": "Open trial за момичета-вратари U9–U11.",
-    "requirements": "U9/U10/U11; 10 август 2026, 11:00–12:15.",
-    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
-    "source_name": "Fulham FC Soccer Schools",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-10",
-    "trial_date": "2026-08-10",
-    "location": "Three Rivers Academy",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "uk-fulham-u14-2026",
-    "title": "Player Development Centre Open Trial — U14",
-    "club": "Fulham FC",
-    "country": "United Kingdom",
-    "language": "English",
-    "city": "Three Rivers Academy",
-    "trial_start": "2026-08-10",
-    "trial_end": "2026-08-10",
-    "age_min": 14,
-    "age_max": 14,
-    "gender": "Mixed",
-    "status": "ACTIVE",
-    "description": "Open trial за опитни U14 играчи за Player Development Centre.",
-    "requirements": "Опитни U14 играчи; 10 август 2026, 09:15–10:45.",
-    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
-    "source_name": "Fulham FC Soccer Schools",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-10",
-    "trial_date": "2026-08-10",
-    "location": "Three Rivers Academy",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "uk-fulham-u8-2026",
-    "title": "Player Development Centre Open Trial — U8",
-    "club": "Fulham FC",
-    "country": "United Kingdom",
-    "language": "English",
-    "city": "Three Rivers Academy",
-    "trial_start": "2026-08-10",
-    "trial_end": "2026-08-10",
-    "age_min": 8,
-    "age_max": 8,
-    "gender": "Mixed",
-    "status": "ACTIVE",
-    "description": "Open trial за опитни U8 играчи за Player Development Centre.",
-    "requirements": "Опитни U8 играчи; 10 август 2026, 11:00–12:30.",
-    "source_url": "https://soccerschools.fulhamfc.com/soccerschools/courses/courses.htm?courseperiodid=1&coursessearch=search&page=2&typeid=89",
-    "source_name": "Fulham FC Soccer Schools",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-10",
-    "trial_date": "2026-08-10",
-    "location": "Three Rivers Academy",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
   },
   {
     "id": "es-apex-madrid-2026",
@@ -783,11 +632,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Момчета 11–23; регистрация предварително.",
     "source_url": "https://www.detectionfootball.com/apex-atlas-madrid-detection-clinic",
     "source_name": "Detection Football",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-21",
-    "trial_date": "2026-08-21 – 2026-08-27",
-    "location": "Madrid",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
   },
   {
     "id": "fr-ppf-u12u13-2026",
@@ -806,55 +651,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "U12/U13; 26 август 2026, Stade de la Terre Rouge, Roussillon.",
     "source_url": "https://drome-ardeche.fff.fr/simple/ppf-u12-u13-g-f-mercredi-26-aout-2026-roussillon/",
     "source_name": "District Drôme-Ardèche de Football / FFF",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-26",
-    "trial_date": "2026-08-26",
-    "location": "Roussillon",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "fr-onlyway-senior-2026",
-    "title": "Détection Senior",
-    "club": "Only Way Football",
-    "country": "France",
-    "language": "French",
-    "city": "Île-de-France",
-    "trial_start": "2026-08-23",
-    "trial_end": "2026-08-23",
-    "gender": "Men",
-    "status": "ACTIVE",
-    "description": "Селекция за senior футболисти в Île-de-France.",
-    "requirements": "Senior; предварителна резервация.",
-    "source_url": "https://onlywayfootball.fr/",
-    "source_name": "Only Way Football",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-23",
-    "trial_date": "2026-08-23",
-    "location": "Île-de-France",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "fr-onlyway-u17u19u15-2026",
-    "title": "Détection U19 – U17 – U15",
-    "club": "Only Way Football",
-    "country": "France",
-    "language": "French",
-    "city": "Île-de-France",
-    "trial_start": "2026-08-23",
-    "trial_end": "2026-08-23",
-    "age_min": 15,
-    "age_max": 19,
-    "gender": "Men",
-    "status": "ACTIVE",
-    "description": "Селекция за U15, U17 и U19 футболисти в Île-de-France.",
-    "requirements": "U15/U17/U19; предварителна резервация.",
-    "source_url": "https://onlywayfootball.fr/",
-    "source_name": "Only Way Football",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-23",
-    "trial_date": "2026-08-23",
-    "location": "Île-de-France",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
   },
   {
     "id": "pt-sportix-europe-2026",
@@ -871,11 +668,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Максимум двама играчи на позиция; регистрация предварително.",
     "source_url": "https://www.sportixgroup.com/programa-pruebas-colon-sportix/",
     "source_name": "Sportix Group",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-09",
-    "trial_date": "2026-08-09 – 2026-08-16",
-    "location": "Europe",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
   },
   {
     "id": "uk-protec-2026",
@@ -894,11 +687,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "Високо ниво; district/county или силен Sunday League футбол; регистрация и родителско съгласие за лица под 16 г.",
     "source_url": "https://protec.awdprojects.co.uk/course/protec-team-trials-10/",
     "source_name": "Protec Football Academy",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-07-01",
-    "trial_date": "2026-07-01 – 2026-08-31",
-    "location": "London / Hertfordshire / Essex / Buckinghamshire / Bedfordshire / Berkshire",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
   },
   {
     "id": "uk-premier-u16-2026",
@@ -917,34 +706,7 @@ const FOOTBALL_TRIALS = [
     "requirements": "U16; регистрация предварително.",
     "source_url": "https://premierfootballuk.com/",
     "source_name": "Premier Football UK",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-09",
-    "trial_date": "2026-08-09 – 2026-08-18",
-    "location": "UK",
-    "contact": "Не е посочен."
-  },
-  {
-    "id": "uk-premier-women-2026",
-    "title": "15+ Women’s Football Trial",
-    "club": "Premier Football UK",
-    "country": "United Kingdom",
-    "language": "English",
-    "city": "UK",
-    "trial_start": "2026-08-03",
-    "trial_end": "2026-08-10",
-    "age_min": 15,
-    "age_max": 99,
-    "gender": "Women",
-    "status": "ACTIVE",
-    "description": "7-дневна програма за женски футболни проби.",
-    "requirements": "Жени 15+; регистрация предварително.",
-    "source_url": "https://premierfootballuk.com/",
-    "source_name": "Premier Football UK",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-03",
-    "trial_date": "2026-08-03 – 2026-08-10",
-    "location": "UK",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
   },
   {
     "id": "ca-milton-2026",
@@ -961,13 +723,197 @@ const FOOTBALL_TRIALS = [
     "requirements": "Регистрация; $20 такса според публикуваната обява.",
     "source_url": "https://www.miltonmagic.com/tryouts/",
     "source_name": "Milton Magic FC",
-    "verified_at": "2026-08-09T08:03:07.292723+00:00",
-    "date": "2026-08-01",
-    "trial_date": "2026-08-01 – 2026-08-31",
-    "location": "Milton, Ontario",
-    "contact": "Не е посочен."
+    "verified_at": "2026-08-09T08:03:07.292723+00:00"
+  },
+  {
+    "id": "ru-luzhniki-2026",
+    "title": "Просмотр и набор новых игроков — ФК Лужники",
+    "club": "Футбольный клуб Лужники",
+    "country": "Russia",
+    "language": "Russian",
+    "city": "Moscow",
+    "trial_start": "2026-08-17",
+    "trial_end": "2026-08-31",
+    "age_min": 4,
+    "age_max": 18,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Открити дни за преглед и прием на нови играчи за сезон 2026–2027. Датите са 17, 27 и 31 август 2026 г.",
+    "requirements": "Деца и младежи 4–18 г.; записване предварително.",
+    "source_url": "https://fcluzhniki.ru/",
+    "source_name": "ФК Лужники",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "fr-onlyway-u15u17u19-2026",
+    "title": "Détection U19 – U17 – U15",
+    "club": "Only Way Football",
+    "country": "France",
+    "language": "French",
+    "city": "Île-de-France",
+    "trial_start": "2026-08-10",
+    "trial_end": "2026-08-23",
+    "age_min": 14,
+    "age_max": 19,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Програма за футболна детекция за U15, U17 и U19; срокът за кандидатстване е 23 август 2026.",
+    "requirements": "U15, U17 или U19; регистрация.",
+    "source_url": "https://onlywayfootball.fr/detection/detection-junior-ile-de-france/",
+    "source_name": "Only Way Football",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "fr-mcdonalds-selection-2026",
+    "title": "McDonald’s Football Challenge — селекция 2026",
+    "club": "McDonald’s Football Challenge / Family Sport Agency",
+    "country": "France",
+    "language": "French",
+    "city": "Paris region",
+    "trial_start": "2026-08-24",
+    "trial_end": "2026-08-28",
+    "age_min": 12,
+    "age_max": 16,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Предварителна детекция за U13, U14 и U16F между 24 и 28 август 2026 г. в района на Париж.",
+    "requirements": "Родени 2013/2014 за момчета или 2011+ за момичета; предварително кандидатстване.",
+    "source_url": "https://www.mcdonaldsfootballchallenge.com/selection.html",
+    "source_name": "McDonald’s Football Challenge",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "fr-ppf-u14u15-futsal-aug27-2026",
+    "title": "Détection Futsal U14-U15G / U16-U17G",
+    "club": "District du Jura de Football",
+    "country": "France",
+    "language": "French",
+    "city": "Jura",
+    "trial_start": "2026-08-27",
+    "trial_end": "2026-08-27",
+    "age_min": 13,
+    "age_max": 17,
+    "gender": "Boys",
+    "status": "ACTIVE",
+    "description": "Официална детекция по футзал за U14-U15G и U16-U17G на 27 август 2026.",
+    "requirements": "Категории U14-U15G и U16-U17G; играчи, включени в процеса на селекция.",
+    "source_url": "https://jura.fff.fr/simple/convocation-ppf-futsal-aout-2026/",
+    "source_name": "District du Jura de Football / FFF",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "pt-ovel-aug08-2026",
+    "title": "Peneira OVEL 2026",
+    "club": "Associação Esportiva Ovel",
+    "country": "Brazil",
+    "language": "Portuguese",
+    "city": "Goiânia, Goiás",
+    "trial_start": "2026-08-08",
+    "trial_end": "2026-08-08",
+    "gender": "Mixed",
+    "status": "PAST",
+    "description": "Оценка/пенеira на Associação Esportiva Ovel за набиране на нови таланти през август 2026.",
+    "requirements": "Регистрация и формуляр за участие.",
+    "source_url": "https://aeovel.com.br/",
+    "source_name": "Associação Esportiva Ovel",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "br-faf-feminino-aug01-2026",
+    "title": "Peneira do Futebol Feminino Alagoano 2026",
+    "club": "Federação Alagoana de Futebol (FAF)",
+    "country": "Brazil",
+    "language": "Portuguese",
+    "city": "Maceió, Alagoas",
+    "trial_start": "2026-08-01",
+    "trial_end": "2026-08-02",
+    "age_min": 13,
+    "age_max": 17,
+    "gender": "Girls",
+    "status": "PAST",
+    "description": "Открита селекция за женски футбол: U15 (13–15 г.) и U17 (16–17 г.), проведена на 1–2 август 2026.",
+    "requirements": "Безплатно участие; регистрация и задължителни документи за непълнолетни.",
+    "source_url": "https://www.futeboldealagoas.net/novo/post/peneira-do-futebol-feminino-alagoano-2026",
+    "source_name": "Federação Alagoana de Futebol",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "cn-cfa-dalian-jul12-2026",
+    "title": "“雏凤计划”国内选拔总营 2026",
+    "club": "中国足球发展基金会 / 中国足球协会",
+    "country": "China",
+    "language": "Chinese",
+    "city": "Dalian",
+    "trial_start": "2026-07-12",
+    "trial_end": "2026-07-17",
+    "gender": "Youth",
+    "status": "PAST",
+    "description": "Национален селекционен лагер за млади футболни таланти, с последваща възможност за международна подготовка.",
+    "requirements": "Подбор чрез съответните футболни структури; селекция на участници.",
+    "source_url": "https://www.zqjjh.org.cn/zx/tzgg/2026/0709/701906.html",
+    "source_name": "中国足球发展基金会 / 中国足球协会",
+    "verified_at": "2026-08-10T05:45:00+00:00"
+  },
+  {
+    "id": "uk-pro11-manchester-sep06-2026",
+    "title": "Pro11 Manchester — Pre-Academy & U8-U16 Trials",
+    "club": "Pro11 Trials",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Manchester",
+    "trial_start": "2026-09-06",
+    "trial_end": "2026-09-06",
+    "age_min": 6,
+    "age_max": 16,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Обявена дата за сезон 2026/27: Pre-Academy U6/U7 и U8–U16, с outfield и goalkeeper секции.",
+    "requirements": "Предварително записване; Platt Lane Sports Complex, Manchester.",
+    "source_url": "https://pro11trials.co.uk/",
+    "source_name": "Pro11 Trials",
+    "verified_at": "2026-08-10T05:50:00+00:00"
+  },
+  {
+    "id": "uk-pro11-newport-pagnell-oct30-2026",
+    "title": "Pro11 Newport Pagnell — Pre-Academy to U15 Trials",
+    "club": "Pro11 Trials",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "Newport Pagnell",
+    "trial_start": "2026-10-30",
+    "trial_end": "2026-10-30",
+    "age_min": 6,
+    "age_max": 15,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "Нова дата за сезон 2026/27: Pre-Academy до U15, обявена от Pro11.",
+    "requirements": "Предварително записване; Newport Pagnell Town FC.",
+    "source_url": "https://pro11trials.co.uk/",
+    "source_name": "Pro11 Trials",
+    "verified_at": "2026-08-10T05:50:00+00:00"
+  },
+  {
+    "id": "uk-premier-u16-oct18-2026",
+    "title": "U16 Football Trial Program — October 2026",
+    "club": "Premier Football UK",
+    "country": "United Kingdom",
+    "language": "English",
+    "city": "UK",
+    "trial_start": "2026-10-18",
+    "trial_end": "2026-10-27",
+    "age_min": 16,
+    "age_max": 16,
+    "gender": "Mixed",
+    "status": "ACTIVE",
+    "description": "9-дневна U16 програма за футболни проби през октомври 2026.",
+    "requirements": "U16; предварителна регистрация.",
+    "source_url": "https://premierfootballuk.com/",
+    "source_name": "Premier Football UK",
+    "verified_at": "2026-08-10T05:50:00+00:00"
   }
 ];
+let FOOTBALL_TRIALS = FALLBACK_TRIALS.slice();
+let TRIALS_META = {updated_at:null,last_full_scan:null};
 let trialsTab="active";
 function escTrial(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
 function trialDate(v){if(!v)return "Дата не е посочена";const d=new Date(v);return isNaN(d)?"Дата не е посочена":d.toLocaleDateString("bg-BG",{day:"2-digit",month:"2-digit",year:"numeric"});}
@@ -990,8 +936,27 @@ function renderTrials(){
  </article>`).join("");
 }
 async function loadTrials(){
- const st=document.getElementById("trialsStatus"); if(st)st.textContent="ФУТБОЛНИ ПРОБИ";
+ const st=document.getElementById("trialsStatus");
+ if(st)st.textContent="Зарежда се актуалната база…";
+ try{
+   const r=await fetch("data/football_trials.json?ts="+Date.now(),{cache:"no-store"});
+   if(!r.ok) throw new Error("HTTP "+r.status);
+   const data=await r.json();
+   if(Array.isArray(data.records)){
+     FOOTBALL_TRIALS=data.records;
+     TRIALS_META=data;
+   }
+ }catch(e){
+   // Local preview/file:// uses the embedded fallback database.
+ }
  renderTrials();
+ if(st){
+   const d=TRIALS_META.updated_at ? new Date(TRIALS_META.updated_at) : null;
+   const stamp=d && !isNaN(d) ? d.toLocaleString("bg-BG",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "";
+   st.textContent=stamp
+     ? "Базата е обновена автоматично · "+stamp
+     : "Информацията се обновява автоматично на всеки 24 часа.";
+ }
 }
 document.addEventListener("DOMContentLoaded", loadTrials);
 document.addEventListener("click",e=>{

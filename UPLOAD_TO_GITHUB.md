@@ -16,4 +16,4 @@ It can also be started manually from Actions → FOOTURA Football Trials Daily U
 
 No Lovable connection is required.
 
-The workflow uses only public web discovery and writes the database file back to the repository.
+The workflow uses public web discovery, preserves the source URL, keeps uncertain discoveries in REVIEW, and writes the database file back to the repository.
