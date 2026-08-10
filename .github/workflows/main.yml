@@ -1,1 +1,31 @@
+name: FOOTURA Football Trials Daily Update
 
+on:
+  schedule:
+    - cron: '15 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-trials:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Crawl 7 languages
+        run: python crawler/crawl_trials.py
+
+      - name: Commit updated database
+        run: |
+          git config user.name "FOOTURA Trials Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/football_trials.json
+          git diff --cached --quiet || git commit -m "Update football trials database"
+          git push
