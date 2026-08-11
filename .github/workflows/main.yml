@@ -41,13 +41,13 @@ jobs:
         run: |
           python crawler/crawl_trials.py
 
-      - name: Save updated database
+            - name: Save updated database
         run: |
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
 
           git fetch origin main
-          git rebase origin/main
+          git reset --hard origin/main
 
           git add data/football_trials.json
 
@@ -57,18 +57,4 @@ jobs:
           fi
 
           git commit -m "Update football trials database"
-
-          for attempt in 1 2 3; do
-            if git push origin HEAD:main; then
-              echo "Database successfully pushed."
-              exit 0
-            fi
-
-            echo "Push failed. Refreshing main and retrying..."
-            git fetch origin main
-            git rebase origin/main
-          done
-
-          echo "ERROR: Could not push database after 3 attempts."
-          exit 1
-
+          git push origin HEAD:main
