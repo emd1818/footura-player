@@ -21,15 +21,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check crawler structure
+      - name: Verify crawler
         run: |
           echo "=== ROOT ==="
           ls -la
           echo "=== CRAWLER ==="
           ls -la crawler
-          echo "=== TARGET ==="
+          echo "=== CRAWLER FILE ==="
           test -f crawler/crawl_trials.py
-          echo "crawler/crawl_trials.py FOUND"
+          echo "OK: crawler/crawl_trials.py exists"
 
       - name: Install dependencies
         run: |
@@ -48,5 +48,10 @@ jobs:
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/football_trials.json
-          git diff --cached --quiet || git commit -m "Update football trials database"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No database changes."
+          else
+            git commit -m "Update football trials database"
+            git push
+          fi
