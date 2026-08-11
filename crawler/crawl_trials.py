@@ -1,214 +1,145 @@
 #!/usr/bin/env python3
 """
-FOOTURA Football Trials Crawler
-- Scans 7 language spaces: Bulgarian, English, Spanish, French,
-  Portuguese, Russian and Chinese.
-- Keeps curated sources from clubs, academies, agencies, showcases,
-  camps and player-management companies.
-- Updates data/football_trials.json.
-- Intended to run from GitHub Actions every 24 hours.
+FOOTURA Football Trials Crawler - production data-quality version
+
+Rules:
+- A record is ACTIVE only when a real future event date is found.
+- Pages without a future event date are NOT inserted as trials.
+- Old records are removed from the active database.
+- Google News is used for discovery, but the linked page must itself contain
+  evidence of a future football trial/showcase/camp/selection.
+- Curated management-company / paid-showcase sources are included.
+- Network requests are bounded and run in parallel.
+- The JSON schema keeps the fields used by the FOOTURA application.
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date, datetime, timezone
+from pathlib import Path
+from urllib.parse import quote, urljoin
+from urllib.request import Request, urlopen
 import hashlib
 import html
 import json
 import re
 import urllib.parse
-import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import date, datetime, timezone
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DB = ROOT / "data" / "football_trials.json"
-USER_AGENT = "FOOTURA-PLAYER-TrialsCrawler/1.0"
 
-LANGS = {
-    "bg": {
-        "hl": "bg",
-        "gl": "BG",
-        "ceid": "BG:bg",
-        "queries": [
-            "футболни проби",
-            "футболен кастинг",
-            "футболна селекция",
-            "пробна тренировка футбол",
-            "футболни проби деца",
-            "футболни проби жени",
-        ],
-    },
-    "en": {
-        "hl": "en",
-        "gl": "US",
-        "ceid": "US:en",
-        "queries": [
-            "football trials",
-            "soccer tryouts",
-            "open football trials",
-            "academy trials",
-            "youth football trials",
-            "women football trials",
-            "professional football trials",
-            "football showcase",
-            "football player internship",
-            "football agency trials",
-        ],
-    },
-    "es": {
-        "hl": "es",
-        "gl": "ES",
-        "ceid": "ES:es",
-        "queries": [
-            "pruebas de fútbol",
-            "captación jugadores fútbol",
-            "selección fútbol base",
-            "pruebas fútbol femenino",
-            "showcase fútbol",
-            "agencia fútbol pruebas",
-        ],
-    },
-    "fr": {
-        "hl": "fr",
-        "gl": "FR",
-        "ceid": "FR:fr",
-        "queries": [
-            "détection football",
-            "essais football jeunes",
-            "détection football féminin",
-            "recrutement jeunes football",
-            "showcase football",
-            "agence football détection",
-        ],
-    },
-    "pt": {
-        "hl": "pt-BR",
-        "gl": "BR",
-        "ceid": "BR:pt-419",
-        "queries": [
-            "peneira futebol",
-            "avaliação atletas futebol",
-            "seletiva futebol",
-            "captação jogadores futebol",
-            "peneira futebol feminino",
-            "showcase futebol",
-        ],
-    },
-    "ru": {
-        "hl": "ru",
-        "gl": "RU",
-        "ceid": "RU:ru",
-        "queries": [
-            "футбольные просмотры",
-            "просмотр футбол академия",
-            "отбор футболистов",
-            "селекция футболистов",
-            "футбольные пробы дети",
-            "футбольные просмотры женщины",
-        ],
-    },
-    "zh": {
-        "hl": "zh-CN",
-        "gl": "CN",
-        "ceid": "CN:zh-Hans",
-        "queries": [
-            "足球试训",
-            "足球俱乐部试训",
-            "足球青训选拔",
-            "足球青训招生",
-            "足球运动员选拔",
-            "足球试训机构",
-        ],
-    },
-}
+USER_AGENT = "FOOTURA-PLAYER-TrialsCrawler/4.0"
+HTTP_TIMEOUT = 12
+MAX_BYTES = 500_000
+MAX_WORKERS = 8
 
-KEYWORDS = re.compile(
-    r"""
-    trial|trials|tryout|try-outs|showcase|internship|player placement|
-    football camp|soccer camp|academy trial|open trial|selection|
-    recruitment|scouting|talent identification|проб|кастинг|селек|
-    просмотр|отбор|пруба|prueba|captación|selección|détection|essai|
-    recrutement|peneira|seletiva|avaliação|captação|试训|选拔|青训|招生|招募
-    """,
-    re.I | re.X,
+TRIAL_WORDS = re.compile(
+    r"\b("
+    r"trial|trials|tryout|try-outs|showcase|"
+    r"football camp|soccer camp|academy trial|open trial|"
+    r"selection|recruitment|scouting|talent identification|"
+    r"player placement|internship|"
+    r"проб|проби|кастинг|селек|селекция|просмотр|отбор|"
+    r"prueba|pruebas|captación|selección|"
+    r"détection|essai|recrutement|"
+    r"peneira|seletiva|avaliação|captação|"
+    r"футбольные просмотры|отбор футболистов|"
+    r"足球试训|足球俱乐部试训|足球青训选拔|足球运动员选拔"
+    r")\b",
+    re.I,
 )
 
+MONTHS = {
+    # English
+    "january": 1, "february": 2, "march": 3, "april": 4,
+    "may": 5, "june": 6, "july": 7, "august": 8,
+    "september": 9, "october": 10, "november": 11, "december": 12,
+    # Spanish
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5,
+    "junio": 6, "julio": 7, "agosto": 8, "septiembre": 9,
+    "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+    # French
+    "janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4,
+    "mai": 5, "juin": 6, "juillet": 7, "août": 8, "aout": 8,
+    "septembre": 9, "octobre": 10, "novembre": 11, "décembre": 12,
+    "decembre": 12,
+    # Portuguese
+    "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4,
+    "maio": 5, "junho": 6, "julho": 7, "agosto": 8, "setembro": 9,
+    "outubro": 10, "novembro": 11, "dezembro": 12,
+}
+
+LANGS = {
+    "bg": ("bg", "BG", "BG:bg", [
+        "футболни проби", "футболен кастинг", "футболна селекция",
+        "пробна тренировка футбол", "футболни проби деца",
+        "футболни проби жени",
+    ]),
+    "en": ("en", "US", "US:en", [
+        "football trials", "soccer tryouts", "open football trials",
+        "academy trials", "youth football trials", "women football trials",
+        "professional football trials", "football showcase",
+        "football player internship", "football agency trials",
+    ]),
+    "es": ("es", "ES", "ES:es", [
+        "pruebas de fútbol", "captación jugadores fútbol",
+        "selección fútbol base", "pruebas fútbol femenino",
+        "showcase fútbol", "agencia fútbol pruebas",
+    ]),
+    "fr": ("fr", "FR", "FR:fr", [
+        "détection football", "essais football jeunes",
+        "détection football féminin", "recrutement jeunes football",
+        "showcase football", "agence football détection",
+    ]),
+    "pt": ("pt-BR", "BR", "BR:pt-419", [
+        "peneira futebol", "avaliação atletas futebol",
+        "seletiva futebol", "captação jogadores futebol",
+        "peneira futebol feminino", "showcase futebol",
+    ]),
+    "ru": ("ru", "RU", "RU:ru", [
+        "футбольные просмотры", "просмотр футбол академия",
+        "отбор футболистов", "селекция футболистов",
+        "футбольные пробы дети", "футбольные просмотры женщины",
+    ]),
+    "zh": ("zh-CN", "CN", "CN:zh-Hans", [
+        "足球试训", "足球俱乐部试训", "足球青训选拔",
+        "足球青训招生", "足球运动员选拔", "足球试训机构",
+    ]),
+}
+
+# Clubs/academies AND paid management/showcase providers.
 CURATED_SOURCES = [
-    {
-        "url": "https://soccercampsinternational.com/",
-        "name": "Soccer Camps International",
-        "lang": "en",
-        "provider_type": "Management / camp provider",
-        "program_type": "International football camp / club pathway",
-    },
-    {
-        "url": "https://www.futbollab.com/en/internship/player",
-        "name": "FutbolLab",
-        "lang": "en",
-        "provider_type": "Management / football education company",
-        "program_type": "Player internship / managed football stay",
-    },
-    {
-        "url": "https://www.pscsocceracademy.com/pro-soccer-tryouts",
-        "name": "PSC Soccer Academy",
-        "lang": "en",
-        "provider_type": "Football academy / management",
-        "program_type": "Paid professional tryout / player placement",
-    },
-    {
-        "url": "https://www.pscsocceracademy.com/womens-pro-soccer-tryouts",
-        "name": "PSC Women",
-        "lang": "en",
-        "provider_type": "Football academy / management",
-        "program_type": "Professional women tryout / agency pathway",
-    },
-    {
-        "url": "https://futedu.es/futedu-soccer-showcase-2026",
-        "name": "Futedu",
-        "lang": "es",
-        "provider_type": "Football management / showcase provider",
-        "program_type": "Paid showcase / scouting event",
-    },
-    {
-        "url": "https://www.golafly.com/trial-showcase",
-        "name": "Golafly",
-        "lang": "en",
-        "provider_type": "Football management / showcase provider",
-        "program_type": "Paid trial / showcase",
-    },
-    {
-        "url": "https://jnmfootball.com/",
-        "name": "JNM Football",
-        "lang": "en",
-        "provider_type": "Football management / agency",
-        "program_type": "Managed club trial placement",
-    },
-    {
-        "url": "https://footballtryouts.eu/en/",
-        "name": "Football Tryouts Prague",
-        "lang": "en",
-        "provider_type": "Football scouting / event provider",
-        "program_type": "Scouting event / trial pathway",
-    },
-    {
-        "url": "https://wsfc7.com/",
-        "name": "WS FC7",
-        "lang": "en",
-        "provider_type": "Football agency / management",
-        "program_type": "Football tests / player pathway",
-    },
+    ("https://soccercampsinternational.com/", "Soccer Camps International",
+     "en", "Management / camp provider", "International football camp / pathway"),
+    ("https://www.futbollab.com/en/internship/player", "FutbolLab",
+     "en", "Management / football education company", "Player internship / managed football stay"),
+    ("https://www.pscsocceracademy.com/pro-soccer-tryouts", "PSC Soccer Academy",
+     "en", "Football academy / management", "Paid professional tryout / player placement"),
+    ("https://www.pscsocceracademy.com/womens-pro-soccer-tryouts", "PSC Women",
+     "en", "Football academy / management", "Professional women tryout / pathway"),
+    ("https://futedu.es/futedu-soccer-showcase-2026", "Futedu",
+     "es", "Football management / showcase provider", "Paid showcase / scouting event"),
+    ("https://www.golafly.com/trial-showcase", "Golafly",
+     "en", "Football management / showcase provider", "Paid trial / showcase"),
+    ("https://jnmfootball.com/", "JNM Football",
+     "en", "Football management / agency", "Managed club trial placement"),
+    ("https://footballtryouts.eu/en/", "Football scouting / event provider",
+     "en", "Football scouting / event provider", "Scouting event / trial pathway"),
+    ("https://wsfc7.com/", "WS FC7",
+     "en", "Football agency / management", "Football tests / player pathway"),
 ]
 
 
-def fetch_url(url, timeout=25):
-    request = urllib.request.Request(
+def fetch_url(url, timeout=HTTP_TIMEOUT):
+    req = Request(
         url,
         headers={
             "User-Agent": USER_AGENT,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         },
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.geturl(), response.read()
+    with urlopen(req, timeout=timeout) as response:
+        return response.geturl(), response.read(MAX_BYTES)
 
 
 def clean_text(value):
@@ -219,92 +150,168 @@ def clean_text(value):
     return re.sub(r"\s+", " ", value).strip()
 
 
-def canonical_url(url, raw_html):
-    match = re.search(
+def extract_title(raw):
+    m = re.search(r"<title[^>]*>(.*?)</title>", raw, re.I | re.S)
+    return clean_text(m.group(1)) if m else ""
+
+
+def canonical_url(url, raw):
+    m = re.search(
         r'<link[^>]+rel=["\']canonical["\'][^>]+href=["\']([^"\']+)',
-        raw_html,
-        flags=re.I,
+        raw, re.I
     )
-    if match:
-        return urllib.parse.urljoin(url, html.unescape(match.group(1)))
-    return url
+    return urljoin(url, html.unescape(m.group(1))) if m else url
 
 
-def extract_title(raw_html):
-    match = re.search(r"<title[^>]*>(.*?)</title>", raw_html, flags=re.I | re.S)
-    return clean_text(match.group(1)) if match else ""
+def safe_date(y, m, d):
+    try:
+        result = date(int(y), int(m), int(d))
+        return result
+    except (ValueError, TypeError):
+        return None
 
 
-def extract_dates(text):
-    found = []
+def extract_jsonld_dates(raw):
+    """Extract Event startDate/endDate from JSON-LD when available."""
+    dates = []
 
+    for block in re.findall(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        raw, re.I | re.S
+    ):
+        try:
+            data = json.loads(html.unescape(block))
+        except Exception:
+            continue
+
+        stack = data if isinstance(data, list) else [data]
+        while stack:
+            item = stack.pop()
+            if isinstance(item, dict):
+                typ = str(item.get("@type", "")).lower()
+                if "event" in typ or any(
+                    k in item for k in ("startDate", "endDate")
+                ):
+                    for key in ("startDate", "endDate"):
+                        value = item.get(key)
+                        if isinstance(value, str):
+                            m = re.search(r"(20\d{2})-(\d{1,2})-(\d{1,2})", value)
+                            if m:
+                                d = safe_date(*m.groups())
+                                if d:
+                                    dates.append(d)
+                for value in item.values():
+                    if isinstance(value, (dict, list)):
+                        stack.append(value)
+            elif isinstance(item, list):
+                stack.extend(item)
+
+    return sorted(set(dates))
+
+
+def extract_dates(text, raw_html):
+    dates = extract_jsonld_dates(raw_html)
+
+    # ISO dates: 2026-08-20
+    for m in re.finditer(r"\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b", text):
+        d = safe_date(*m.groups())
+        if d:
+            dates.append(d)
+
+    # D/M/Y or D-M-Y
+    for m in re.finditer(r"\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})\b", text):
+        d = safe_date(m.group(3), m.group(2), m.group(1))
+        if d:
+            dates.append(d)
+
+    # 20 August 2026 / August 20, 2026 etc.
+    month_pattern = "|".join(re.escape(x) for x in sorted(MONTHS, key=len, reverse=True))
     patterns = [
-        r"\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b",
-        r"\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})\b",
+        rf"\b(\d{{1,2}})\s+({month_pattern})\s*,?\s+(20\d{{2}})\b",
+        rf"\b({month_pattern})\s+(\d{{1,2}})(?:st|nd|rd|th)?\s*,?\s+(20\d{{2}})\b",
     ]
 
     for pattern in patterns:
-        for match in re.finditer(pattern, text):
-            try:
-                groups = match.groups()
-                if groups[0].startswith("20"):
-                    y, m, d = map(int, groups)
-                else:
-                    d, m, y = int(groups[0]), int(groups[1]), int(groups[2])
-                found.append(date(y, m, d))
-            except ValueError:
-                pass
+        for m in re.finditer(pattern, text, re.I):
+            groups = m.groups()
+            if groups[0].lower() in MONTHS:
+                month = MONTHS[groups[0].lower()]
+                day = groups[1]
+                year = groups[2]
+            else:
+                day = groups[0]
+                month = MONTHS[groups[1].lower()]
+                year = groups[2]
+            d = safe_date(year, month, day)
+            if d:
+                dates.append(d)
 
-    return sorted(set(found))
+    return sorted(set(dates))
 
 
 def extract_age_range(text):
-    match = re.search(
-        r"\bU[- ]?(\d{1,2})\b|\b(?:ages?|age)\s*(\d{1,2})\s*[-–]\s*(\d{1,2})\b",
-        text,
-        flags=re.I,
+    m = re.search(
+        r"\bU[- ]?(\d{1,2})\b|"
+        r"\b(?:ages?|age)\s*(\d{1,2})\s*[-–]\s*(\d{1,2})\b",
+        text, re.I
     )
-
-    if not match:
+    if not m:
         return None, None
+    vals = [int(x) for x in m.groups() if x]
+    if len(vals) == 1:
+        return vals[0], vals[0]
+    return min(vals), max(vals)
 
-    values = [int(value) for value in match.groups() if value]
-    if len(values) == 1:
-        return values[0], values[0]
-    return min(values), max(values)
+
+def extract_location(text):
+    patterns = [
+        r"(?:location|venue|city|place|место|град|ubicación|lieu)\s*[:\-]\s*([^.;|]{3,100})",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text, re.I)
+        if m:
+            return m.group(1).strip()
+    return None
 
 
-def make_id(source_url, start_date):
-    raw = f"{source_url}|{start_date or ''}".encode("utf-8")
-    return "trial-" + hashlib.sha1(raw).hexdigest()[:14]
+def make_id(url, start):
+    return "trial-" + hashlib.sha1(
+        f"{url}|{start}".encode("utf-8")
+    ).hexdigest()[:14]
 
 
 def verify_source(source, discovered_description=""):
     try:
         final_url, body = fetch_url(source["url"])
-        raw_html = body.decode("utf-8", errors="ignore")[:500_000]
-        page_text = clean_text(raw_html)
+        raw = body.decode("utf-8", errors="ignore")
+        text = clean_text(raw)
 
-        title = extract_title(raw_html)
+        title = extract_title(raw) or source["name"]
         evidence = (
             f"{source['name']} {source['program_type']} "
-            f"{title} {discovered_description} {page_text[:150_000]}"
+            f"{title} {discovered_description} {text[:180000]}"
         )
 
-        if not KEYWORDS.search(evidence):
+        # First gate: it must actually discuss a football trial/opportunity.
+        if not TRIAL_WORDS.search(evidence):
             return None
 
-        dates = [d for d in extract_dates(page_text) if d >= date.today()]
-        age_min, age_max = extract_age_range(page_text)
-        final_url = canonical_url(final_url, raw_html)
+        # Second, decisive gate: a REAL FUTURE DATE is mandatory.
+        dates = [d for d in extract_dates(text, raw) if d >= date.today()]
+        if not dates:
+            return None
 
-        start_date = dates[0].isoformat() if dates else None
-        end_date = dates[-1].isoformat() if dates else None
+        start_date = dates[0].isoformat()
+        end_date = dates[-1].isoformat()
+
+        age_min, age_max = extract_age_range(text)
+        location = extract_location(text)
+        final_url = canonical_url(final_url, raw)
 
         return {
             "id": make_id(final_url, start_date),
-            "title": title or source["name"],
-            "description": page_text[:900],
+            "title": title[:250],
+            "description": text[:900],
             "source_url": final_url,
             "source_name": source["name"],
             "language": source["lang"],
@@ -312,10 +319,11 @@ def verify_source(source, discovered_description=""):
             "trial_end": end_date,
             "age_min": age_min,
             "age_max": age_max,
-            "status": "ACTIVE" if dates else "REVIEW",
+            "status": "ACTIVE",
             "verified_at": datetime.now(timezone.utc).isoformat(),
             "provider_type": source["provider_type"],
             "program_type": source["program_type"],
+            "location": location,
         }
 
     except Exception as exc:
@@ -324,124 +332,136 @@ def verify_source(source, discovered_description=""):
 
 
 def google_news_rss(language_code, query):
-    cfg = LANGS[language_code]
-
+    hl, gl, ceid, _ = LANGS[language_code]
     url = (
-        "https://news.google.com/rss/search?q="
-        + urllib.parse.quote(query)
-        + "&hl="
-        + urllib.parse.quote(cfg["hl"])
-        + "&gl="
-        + urllib.parse.quote(cfg["gl"])
-        + "&ceid="
-        + urllib.parse.quote(cfg["ceid"])
+        "https://news.google.com/rss/search?q=" + quote(query)
+        + "&hl=" + quote(hl)
+        + "&gl=" + quote(gl)
+        + "&ceid=" + quote(ceid)
     )
 
     _, body = fetch_url(url)
     root = ET.fromstring(body)
 
     results = []
-
     for item in root.findall(".//item"):
-        item_title = html.unescape(item.findtext("title") or "")
-        item_url = item.findtext("link") or ""
+        title = html.unescape(item.findtext("title") or "")
+        link = item.findtext("link") or ""
         description = clean_text(item.findtext("description") or "")
-
-        if item_url and KEYWORDS.search(item_title + " " + description):
-            results.append((item_title, item_url, description))
-
+        if link and TRIAL_WORDS.search(title + " " + description):
+            results.append((title, link, description))
     return results
 
 
 def load_database():
     if not DB.exists():
         return {"records": []}
-
     try:
         data = json.loads(DB.read_text(encoding="utf-8"))
-        if isinstance(data, dict):
-            return data
-    except Exception as exc:
-        print(f"WARNING: Could not read database: {exc}")
-
-    return {"records": []}
+        return data if isinstance(data, dict) else {"records": []}
+    except Exception:
+        return {"records": []}
 
 
 def main():
-    database = load_database()
-    records = database.get("records", [])
+    today = date.today()
+    started = datetime.now(timezone.utc)
 
-    if not isinstance(records, list):
-        records = []
+    # IMPORTANT: start from a clean current database.
+    # This deliberately removes the 1,910 previously polluted records.
+    indexed = {}
 
-    indexed = {
-        (record.get("source_url"), record.get("trial_start")): record
-        for record in records
-        if record.get("source_url")
-    }
+    candidates = []
+    errors = []
 
-    discovered = 0
+    # Curated providers are always scanned.
+    for url, name, lang, provider_type, program_type in CURATED_SOURCES:
+        candidates.append({
+            "url": url,
+            "name": name,
+            "lang": lang,
+            "provider_type": provider_type,
+            "program_type": program_type,
+        })
+
+    # Discover candidate URLs.
+    discovery_jobs = []
+    for lang, (_, _, _, queries) in LANGS.items():
+        for query in queries:
+            discovery_jobs.append((lang, query))
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {
+            pool.submit(google_news_rss, lang, query): (lang, query)
+            for lang, query in discovery_jobs
+        }
+
+        for future in as_completed(futures):
+            lang, query = futures[future]
+            try:
+                for title, url, description in future.result():
+                    candidates.append({
+                        "url": url,
+                        "name": title[:200],
+                        "lang": lang,
+                        "provider_type": "Discovered football opportunity source",
+                        "program_type": "Club / academy / federation / agency / management trial",
+                        "description": description,
+                    })
+            except Exception as exc:
+                errors.append(f"SEARCH {lang}/{query}: {exc}")
+
+    # Deduplicate candidate URLs before visiting them.
+    unique = {}
+    for item in candidates:
+        unique[item["url"]] = item
+
     verified = 0
 
-    # 1. Always check curated sources.
-    for source in CURATED_SOURCES:
-        discovered += 1
-        record = verify_source(source, "Curated FOOTURA opportunity source")
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {
+            pool.submit(
+                verify_source,
+                item,
+                item.get("description", "")
+            ): item
+            for item in unique.values()
+        }
 
-        if record:
-            verified += 1
-            key = (record["source_url"], record["trial_start"])
-            indexed[key] = record
-
-    # 2. Search seven language spaces.
-    for language_code, cfg in LANGS.items():
-        for query in cfg["queries"]:
+        for future in as_completed(futures):
             try:
-                results = google_news_rss(language_code, query)
-
-                for item_title, item_url, description in results:
-                    discovered += 1
-
-                    source = {
-                        "url": item_url,
-                        "name": item_title[:200],
-                        "lang": language_code,
-                        "provider_type": "Discovered football opportunity source",
-                        "program_type": "Club / academy / federation / agency trial",
-                    }
-
-                    record = verify_source(source, description)
-
-                    if record:
-                        verified += 1
-                        key = (record["source_url"], record["trial_start"])
-                        indexed[key] = record
-
+                record = future.result()
+                if record:
+                    verified += 1
+                    key = (record["source_url"], record["trial_start"])
+                    indexed[key] = record
             except Exception as exc:
-                print(
-                    f"SEARCH ERROR: language={language_code}, "
-                    f"query={query!r} -> {exc}"
-                )
+                errors.append(f"VERIFY WORKER: {exc}")
 
-    # 3. Recalculate ACTIVE / PAST status.
-    today = date.today()
+    records = list(indexed.values())
 
-    for record in indexed.values():
-        try:
-            if record.get("trial_end"):
-                end_date = date.fromisoformat(record["trial_end"])
-                if end_date < today:
-                    record["status"] = "PAST"
-        except (ValueError, TypeError):
-            pass
+    # Defensive final filter: only future records can enter ACTIVE database.
+    records = [
+        r for r in records
+        if r.get("trial_start")
+        and r.get("trial_end")
+        and r.get("status") == "ACTIVE"
+        and date.fromisoformat(r["trial_end"]) >= today
+    ]
+
+    finished = datetime.now(timezone.utc)
 
     output = {
-        "records": list(indexed.values()),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "records": records,
+        "updated_at": finished.isoformat(),
         "last_full_scan": today.isoformat(),
-        "last_scan_discovered": discovered,
+        "last_scan_discovered": len(candidates),
         "last_scan_verified": verified,
-        "crawler_version": "3.0",
+        "last_scan_errors": len(errors),
+        "last_scan_duration_seconds": round(
+            (finished - started).total_seconds(), 2
+        ),
+        "crawler_version": "4.0-data-quality",
     }
 
     DB.parent.mkdir(parents=True, exist_ok=True)
@@ -450,13 +470,24 @@ def main():
         encoding="utf-8",
     )
 
-    print(
-        "FOOTURA scan complete: "
-        f"{discovered} candidates, "
-        f"{verified} verified, "
-        f"{len(indexed)} total records."
-    )
+    print("=" * 60)
+    print("FOOTURA FOOTBALL TRIALS CRAWLER 4.0")
+    print("=" * 60)
+    print(f"Candidates discovered : {len(candidates)}")
+    print(f"Verified with future date: {verified}")
+    print(f"ACTIVE records saved  : {len(records)}")
+    print(f"Errors                : {len(errors)}")
+    print(f"Duration              : {output['last_scan_duration_seconds']} sec")
+    print(f"Database              : {DB}")
+    print("=" * 60)
+
+    if errors:
+        print("First errors:")
+        for error in errors[:20]:
+            print(" -", error)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
