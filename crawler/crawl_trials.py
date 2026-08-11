@@ -43,8 +43,7 @@ TRIAL_WORDS = re.compile(
     r"prueba|pruebas|captación|selección|"
     r"détection|essai|recrutement|"
     r"peneira|seletiva|avaliação|captação|"
-    r"футбольные просмотры|отбор футболистов|"
-    r"足球试训|足球俱乐部试训|足球青训选拔|足球运动员选拔"
+    r"футбольные просмотры|отбор футболистов"
     r")\b",
     re.I,
 )
@@ -67,6 +66,17 @@ MONTHS = {
     "janeiro": 1, "fevereiro": 2, "março": 3, "marco": 3, "abril": 4,
     "maio": 5, "junho": 6, "julho": 7, "agosto": 8, "setembro": 9,
     "outubro": 10, "novembro": 11, "dezembro": 12,
+    # Bulgarian
+    "януари": 1, "февруари": 2, "март": 3, "април": 4, "май": 5,
+    "юни": 6, "юли": 7, "август": 8, "септември": 9,
+    "октомври": 10, "ноември": 11, "декември": 12,
+    # Russian (nominative and genitive forms, as used in dates)
+    "январь": 1, "января": 1, "февраль": 2, "февраля": 2,
+    "март": 3, "марта": 3, "апрель": 4, "апреля": 4,
+    "май": 5, "мая": 5, "июнь": 6, "июня": 6,
+    "июль": 7, "июля": 7, "август": 8, "августа": 8,
+    "сентябрь": 9, "сентября": 9, "октябрь": 10, "октября": 10,
+    "ноябрь": 11, "ноября": 11, "декабрь": 12, "декабря": 12,
 }
 
 LANGS = {
@@ -100,10 +110,6 @@ LANGS = {
         "футбольные просмотры", "просмотр футбол академия",
         "отбор футболистов", "селекция футболистов",
         "футбольные пробы дети", "футбольные просмотры женщины",
-    ]),
-    "zh": ("zh-CN", "CN", "CN:zh-Hans", [
-        "足球试训", "足球俱乐部试训", "足球青训选拔",
-        "足球青训招生", "足球运动员选拔", "足球试训机构",
     ]),
 }
 
@@ -139,7 +145,37 @@ def fetch_url(url, timeout=HTTP_TIMEOUT):
         },
     )
     with urlopen(req, timeout=timeout) as response:
-        return response.geturl(), response.read(MAX_BYTES)
+        content_type = response.headers.get("Content-Type", "")
+        return response.geturl(), response.read(MAX_BYTES), content_type
+
+
+def decode_body(body, content_type=""):
+    """Decode HTML bytes using the declared charset when available.
+
+    Defaulting everything to UTF-8 silently mangles pages served as
+    GBK/GB2312/Windows-1251 (common for ru/bg sources), which then
+    fails every downstream date/keyword regex on that page.
+    """
+    candidates = []
+
+    m = re.search(r"charset=([\w-]+)", content_type, re.I)
+    if m:
+        candidates.append(m.group(1))
+
+    head = body[:2048].decode("ascii", errors="ignore")
+    m = re.search(r'charset=["\']?\s*([\w-]+)', head, re.I)
+    if m:
+        candidates.append(m.group(1))
+
+    candidates += ["utf-8", "gb18030", "windows-1251", "windows-1250"]
+
+    for enc in candidates:
+        try:
+            return body.decode(enc)
+        except (LookupError, UnicodeDecodeError):
+            continue
+
+    return body.decode("utf-8", errors="ignore")
 
 
 def clean_text(value):
@@ -282,8 +318,8 @@ def make_id(url, start):
 
 def verify_source(source, discovered_description=""):
     try:
-        final_url, body = fetch_url(source["url"])
-        raw = body.decode("utf-8", errors="ignore")
+        final_url, body, content_type = fetch_url(source["url"])
+        raw = decode_body(body, content_type)
         text = clean_text(raw)
 
         title = extract_title(raw) or source["name"]
@@ -340,154 +376,9 @@ def google_news_rss(language_code, query):
         + "&ceid=" + quote(ceid)
     )
 
-    _, body = fetch_url(url)
+    _, body, _ = fetch_url(url)
     root = ET.fromstring(body)
 
     results = []
     for item in root.findall(".//item"):
-        title = html.unescape(item.findtext("title") or "")
-        link = item.findtext("link") or ""
-        description = clean_text(item.findtext("description") or "")
-        if link and TRIAL_WORDS.search(title + " " + description):
-            results.append((title, link, description))
-    return results
-
-
-def load_database():
-    if not DB.exists():
-        return {"records": []}
-    try:
-        data = json.loads(DB.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else {"records": []}
-    except Exception:
-        return {"records": []}
-
-
-def main():
-    today = date.today()
-    started = datetime.now(timezone.utc)
-
-    # IMPORTANT: start from a clean current database.
-    # This deliberately removes the 1,910 previously polluted records.
-    indexed = {}
-
-    candidates = []
-    errors = []
-
-    # Curated providers are always scanned.
-    for url, name, lang, provider_type, program_type in CURATED_SOURCES:
-        candidates.append({
-            "url": url,
-            "name": name,
-            "lang": lang,
-            "provider_type": provider_type,
-            "program_type": program_type,
-        })
-
-    # Discover candidate URLs.
-    discovery_jobs = []
-    for lang, (_, _, _, queries) in LANGS.items():
-        for query in queries:
-            discovery_jobs.append((lang, query))
-
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = {
-            pool.submit(google_news_rss, lang, query): (lang, query)
-            for lang, query in discovery_jobs
-        }
-
-        for future in as_completed(futures):
-            lang, query = futures[future]
-            try:
-                for title, url, description in future.result():
-                    candidates.append({
-                        "url": url,
-                        "name": title[:200],
-                        "lang": lang,
-                        "provider_type": "Discovered football opportunity source",
-                        "program_type": "Club / academy / federation / agency / management trial",
-                        "description": description,
-                    })
-            except Exception as exc:
-                errors.append(f"SEARCH {lang}/{query}: {exc}")
-
-    # Deduplicate candidate URLs before visiting them.
-    unique = {}
-    for item in candidates:
-        unique[item["url"]] = item
-
-    verified = 0
-
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = {
-            pool.submit(
-                verify_source,
-                item,
-                item.get("description", "")
-            ): item
-            for item in unique.values()
-        }
-
-        for future in as_completed(futures):
-            try:
-                record = future.result()
-                if record:
-                    verified += 1
-                    key = (record["source_url"], record["trial_start"])
-                    indexed[key] = record
-            except Exception as exc:
-                errors.append(f"VERIFY WORKER: {exc}")
-
-    records = list(indexed.values())
-
-    # Defensive final filter: only future records can enter ACTIVE database.
-    records = [
-        r for r in records
-        if r.get("trial_start")
-        and r.get("trial_end")
-        and r.get("status") == "ACTIVE"
-        and date.fromisoformat(r["trial_end"]) >= today
-    ]
-
-    finished = datetime.now(timezone.utc)
-
-    output = {
-        "records": records,
-        "updated_at": finished.isoformat(),
-        "last_full_scan": today.isoformat(),
-        "last_scan_discovered": len(candidates),
-        "last_scan_verified": verified,
-        "last_scan_errors": len(errors),
-        "last_scan_duration_seconds": round(
-            (finished - started).total_seconds(), 2
-        ),
-        "crawler_version": "4.0-data-quality",
-    }
-
-    DB.parent.mkdir(parents=True, exist_ok=True)
-    DB.write_text(
-        json.dumps(output, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-
-    print("=" * 60)
-    print("FOOTURA FOOTBALL TRIALS CRAWLER 4.0")
-    print("=" * 60)
-    print(f"Candidates discovered : {len(candidates)}")
-    print(f"Verified with future date: {verified}")
-    print(f"ACTIVE records saved  : {len(records)}")
-    print(f"Errors                : {len(errors)}")
-    print(f"Duration              : {output['last_scan_duration_seconds']} sec")
-    print(f"Database              : {DB}")
-    print("=" * 60)
-
-    if errors:
-        print("First errors:")
-        for error in errors[:20]:
-            print(" -", error)
-
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        title
