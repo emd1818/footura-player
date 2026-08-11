@@ -153,7 +153,7 @@ def decode_body(body, content_type=""):
     """Decode HTML bytes using the declared charset when available.
 
     Defaulting everything to UTF-8 silently mangles pages served as
-    GBK/GB2312/Windows-1251 (common for ru/bg sources), which then
+    GBK/GB2312/Windows-1251 (common for zh/ru/bg sources), which then
     fails every downstream date/keyword regex on that page.
     """
     candidates = []
@@ -317,8 +317,13 @@ def make_id(url, start):
 
 
 def verify_source(source, discovered_description=""):
+    url = source["url"]
     try:
-        final_url, body, content_type = fetch_url(source["url"])
+        final_url, body, content_type = fetch_url(url)
+    except Exception as exc:
+        return None, "fetch_error", url, f"{exc}"
+
+    try:
         raw = decode_body(body, content_type)
         text = clean_text(raw)
 
@@ -330,12 +335,12 @@ def verify_source(source, discovered_description=""):
 
         # First gate: it must actually discuss a football trial/opportunity.
         if not TRIAL_WORDS.search(evidence):
-            return None
+            return None, "no_trial_words", final_url, title[:120]
 
         # Second, decisive gate: a REAL FUTURE DATE is mandatory.
         dates = [d for d in extract_dates(text, raw) if d >= date.today()]
         if not dates:
-            return None
+            return None, "no_future_date", final_url, title[:120]
 
         start_date = dates[0].isoformat()
         end_date = dates[-1].isoformat()
@@ -344,7 +349,7 @@ def verify_source(source, discovered_description=""):
         location = extract_location(text)
         final_url = canonical_url(final_url, raw)
 
-        return {
+        record = {
             "id": make_id(final_url, start_date),
             "title": title[:250],
             "description": text[:900],
@@ -361,10 +366,10 @@ def verify_source(source, discovered_description=""):
             "program_type": source["program_type"],
             "location": location,
         }
+        return record, "ok", final_url, title[:120]
 
     except Exception as exc:
-        print(f"VERIFY ERROR: {source['url']} -> {exc}")
-        return None
+        return None, "parse_error", url, f"{exc}"
 
 
 def google_news_rss(language_code, query):
@@ -452,6 +457,8 @@ def main():
         unique[item["url"]] = item
 
     verified = 0
+    reason_counts = {}
+    samples = {"no_future_date": [], "no_trial_words": [], "fetch_error": [], "parse_error": []}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {
@@ -465,11 +472,14 @@ def main():
 
         for future in as_completed(futures):
             try:
-                record = future.result()
+                record, reason, seen_url, note = future.result()
+                reason_counts[reason] = reason_counts.get(reason, 0) + 1
                 if record:
                     verified += 1
                     key = (record["source_url"], record["trial_start"])
                     indexed[key] = record
+                elif reason in samples and len(samples[reason]) < 8:
+                    samples[reason].append(f"{seen_url}  |  {note}")
             except Exception as exc:
                 errors.append(f"VERIFY WORKER: {exc}")
 
@@ -515,6 +525,14 @@ def main():
     print(f"Duration              : {output['last_scan_duration_seconds']} sec")
     print(f"Database              : {DB}")
     print("=" * 60)
+    print("Reason breakdown      :", reason_counts)
+    print("=" * 60)
+
+    for reason, urls in samples.items():
+        if urls:
+            print(f"Samples for '{reason}':")
+            for u in urls:
+                print("  -", u)
 
     if errors:
         print("First errors:")
