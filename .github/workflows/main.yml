@@ -28,7 +28,7 @@ jobs:
       - name: Verify crawler
         run: |
           test -f crawler/crawl_trials.py
-          echo "OK: crawler/crawl_trials.py exists"
+          echo "Crawler found."
 
       - name: Install dependencies
         run: |
@@ -37,26 +37,9 @@ jobs:
           fi
 
       - name: Run football trials crawler
-        run: |
-          python crawler/crawl_trials.py
+        run: python crawler/crawl_trials.py
 
-      - name: Save database
+      - name: Update database
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name "FOOTURA Trials Bot"
-          git config user.email "actions@users.noreply.github.com"
-
-          git add data/football_trials.json
-
-          if git diff --cached --quiet; then
-            echo "No database changes."
-            exit 0
-          fi
-
-          git commit -m "Update football trials database"
-
-          git fetch origin main
-          git rebase origin/main
-
-          git push origin HEAD:main
+        run: python scripts/update_database.py
