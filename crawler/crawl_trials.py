@@ -83,33 +83,33 @@ MONTHS = {
 }
 
 LANGS = {
-    "bg": ("bg", "BG", "BG:bg", [
+    "bg": ("bg-BG", [
         "футболни проби", "футболен кастинг", "футболна селекция",
         "пробна тренировка футбол", "футболни проби деца",
         "футболни проби жени",
     ]),
-    "en": ("en", "US", "US:en", [
+    "en": ("en-US", [
         "football trials", "soccer tryouts", "open football trials",
         "academy trials", "youth football trials", "women football trials",
         "professional football trials", "football showcase",
         "football player internship", "football agency trials",
     ]),
-    "es": ("es", "ES", "ES:es", [
+    "es": ("es-ES", [
         "pruebas de fútbol", "captación jugadores fútbol",
         "selección fútbol base", "pruebas fútbol femenino",
         "showcase fútbol", "agencia fútbol pruebas",
     ]),
-    "fr": ("fr", "FR", "FR:fr", [
+    "fr": ("fr-FR", [
         "détection football", "essais football jeunes",
         "détection football féminin", "recrutement jeunes football",
         "showcase football", "agence football détection",
     ]),
-    "pt": ("pt-BR", "BR", "BR:pt-419", [
+    "pt": ("pt-BR", [
         "peneira futebol", "avaliação atletas futebol",
         "seletiva futebol", "captação jogadores futebol",
         "peneira futebol feminino", "showcase futebol",
     ]),
-    "ru": ("ru", "RU", "RU:ru", [
+    "ru": ("ru-RU", [
         "футбольные просмотры", "просмотр футбол академия",
         "отбор футболистов", "селекция футболистов",
         "футбольные пробы дети", "футбольные просмотры женщины",
@@ -319,29 +319,46 @@ def make_id(url, start):
     ).hexdigest()[:14]
 
 
-_GOOGLE_OWNED_DOMAINS = (
+_SEARCH_ENGINE_DOMAINS = (
     "google.com", "googleusercontent.com", "gstatic.com",
     "googlesyndication.com", "googletagmanager.com", "doubleclick.net",
-    "googleapis.com",
+    "googleapis.com", "bing.com",
 )
 
 
-def is_google_owned(url):
+def is_search_engine_owned(url):
     host = urllib.parse.urlparse(url).netloc.lower()
-    return any(host == d or host.endswith("." + d) for d in _GOOGLE_OWNED_DOMAINS)
+    return any(host == d or host.endswith("." + d) for d in _SEARCH_ENGINE_DOMAINS)
+
+
+# Kept as an alias so any residual references behave the same way.
+is_google_owned = is_search_engine_owned
+
+
+def resolve_bing_redirect(url):
+    """Some Bing News items go through a bing.com/news/apiclick.aspx
+    tracking redirect that carries the real article URL in its `url`
+    query parameter — no page fetch needed, just decode the query string.
+    """
+    parsed = urllib.parse.urlparse(url)
+    if not parsed.netloc.lower().endswith("bing.com"):
+        return None
+    qs = urllib.parse.parse_qs(parsed.query)
+    for key in ("url", "u"):
+        if key in qs and qs[key]:
+            candidate = qs[key][0]
+            if candidate.startswith("http") and not is_search_engine_owned(candidate):
+                return candidate
+    return None
 
 
 def decode_google_news_article_url(raw):
-    """Resolve a Google News interstitial page to the real publisher URL.
-
-    Google's RSS /rss/articles/<token> links no longer embed the plain
-    article URL in the token itself (older base64-decode tricks stopped
-    working after Google changed the encoding). The current interstitial
-    page instead exposes a signed request (data-n-a-sg / data-n-a-ts /
-    data-n-a-id attributes) that must be replayed against Google's
-    internal batchexecute endpoint to get the real URL back. This is an
-    undocumented, unofficial mechanism — if Google changes it again this
-    will need updating.
+    """Best-effort resolution for the rare case a Google-wrapped link
+    still shows up. Google's RSS /rss/articles/<token> links are a
+    JS-only interstitial with an undocumented internal API for
+    resolving them, so this is not guaranteed to keep working — Bing
+    News RSS is used as the primary discovery source specifically to
+    avoid depending on it.
     """
     sg = re.search(r'data-n-a-sg="([^"]+)"', raw)
     ts = re.search(r'data-n-a-ts="([^"]+)"', raw)
@@ -377,25 +394,30 @@ def decode_google_news_article_url(raw):
         payload_line = text.split("\n\n", 1)[1].splitlines()[0]
         outer = json.loads(payload_line)
         decoded_url = json.loads(outer[0][2])[1]
-        return decoded_url if not is_google_owned(decoded_url) else None
+        return decoded_url if not is_search_engine_owned(decoded_url) else None
     except Exception:
         return None
 
 
-def resolve_google_news_link(raw):
-    """Cheaper fallback checks, tried before the batchexecute round-trip."""
+def resolve_wrapped_link(url, raw):
+    """Try, cheapest first, to get past any search-engine redirect
+    wrapper and reach the real publisher URL."""
+    resolved = resolve_bing_redirect(url)
+    if resolved:
+        return resolved
+
     m = re.search(r'data-n-au="(https?://[^"]+)"', raw)
-    if m and not is_google_owned(html.unescape(m.group(1))):
+    if m and not is_search_engine_owned(html.unescape(m.group(1))):
         return html.unescape(m.group(1))
 
     m = re.search(
         r'<meta[^>]+http-equiv=["\']refresh["\'][^>]+content=["\'][^"\']*url=([^"\'>]+)',
         raw, re.I,
     )
-    if m and not is_google_owned(html.unescape(m.group(1))):
+    if m and not is_search_engine_owned(html.unescape(m.group(1))):
         return html.unescape(m.group(1))
 
-    return None
+    return decode_google_news_article_url(raw)
 
 
 def verify_source(source, discovered_description=""):
@@ -409,8 +431,8 @@ def verify_source(source, discovered_description=""):
     try:
         raw = decode_body(body, content_type)
 
-        if "news.google.com" in final_url or is_google_owned(final_url):
-            resolved = resolve_google_news_link(raw) or decode_google_news_article_url(raw)
+        if is_search_engine_owned(final_url):
+            resolved = resolve_wrapped_link(final_url, raw)
             if resolved:
                 try:
                     final_url, body, content_type = fetch_url(resolved)
@@ -433,7 +455,7 @@ def verify_source(source, discovered_description=""):
         # Second, decisive gate: a REAL FUTURE DATE is mandatory.
         dates = [d for d in extract_dates(text, raw) if d >= date.today()]
         if not dates:
-            reason = "no_future_date_google_unresolved" if is_google_owned(final_url) else "no_future_date"
+            reason = "no_future_date_wrapped_unresolved" if is_search_engine_owned(final_url) else "no_future_date"
             return None, reason, final_url, title[:120]
 
         start_date = dates[0].isoformat()
@@ -468,13 +490,19 @@ def verify_source(source, discovered_description=""):
 
 
 
-def google_news_rss(language_code, query):
-    hl, gl, ceid, _ = LANGS[language_code]
+def bing_news_rss(language_code, query):
+    """Bing News RSS, used instead of Google News RSS.
+
+    Google News RSS links (news.google.com/rss/articles/<token>) are a
+    JS-only interstitial: a plain HTTP fetch never reaches the real
+    article, only Google's shell page (undocumented, and it keeps
+    changing). Bing News RSS returns direct publisher links, so no
+    redirect-resolution step is needed at all.
+    """
+    market = LANGS[language_code][0]
     url = (
-        "https://news.google.com/rss/search?q=" + quote(query)
-        + "&hl=" + quote(hl)
-        + "&gl=" + quote(gl)
-        + "&ceid=" + quote(ceid)
+        "https://www.bing.com/news/search?q=" + quote(query)
+        + "&format=RSS&setmkt=" + quote(market)
     )
 
     _, body, _ = fetch_url(url)
@@ -523,13 +551,13 @@ def main():
 
     # Discover candidate URLs.
     discovery_jobs = []
-    for lang, (_, _, _, queries) in LANGS.items():
+    for lang, (_, queries) in LANGS.items():
         for query in queries:
             discovery_jobs.append((lang, query))
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {
-            pool.submit(google_news_rss, lang, query): (lang, query)
+            pool.submit(bing_news_rss, lang, query): (lang, query)
             for lang, query in discovery_jobs
         }
 
@@ -555,7 +583,7 @@ def main():
 
     verified = 0
     reason_counts = {}
-    samples = {"no_future_date": [], "no_future_date_google_unresolved": [], "no_trial_words": [], "fetch_error": [], "parse_error": []}
+    samples = {"no_future_date": [], "no_future_date_wrapped_unresolved": [], "no_trial_words": [], "fetch_error": [], "parse_error": []}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {
