@@ -8,13 +8,14 @@ on:
 jobs:
   update-trials:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -23,26 +24,20 @@ jobs:
 
       - name: Verify crawler
         run: |
-          echo "=== ROOT ==="
-          ls -la
-          echo "=== CRAWLER ==="
-          ls -la crawler
-          echo "=== CRAWLER FILE ==="
           test -f crawler/crawl_trials.py
           echo "OK: crawler/crawl_trials.py exists"
 
       - name: Install dependencies
         run: |
           if [ -f crawler/requirements.txt ]; then
-            pip install -r crawler/requirements.txt
+            python -m pip install -r crawler/requirements.txt
           fi
 
       - name: Run football trials crawler
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python crawler/crawl_trials.py
-            - name: Save updated database
+
+      - name: Save updated database
         run: |
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
