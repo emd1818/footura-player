@@ -1,10 +1,10 @@
 {
   "records": [],
-  "updated_at": "2026-08-11T12:58:39.081859+00:00",
+  "updated_at": "2026-08-11T15:27:47.791530+00:00",
   "last_full_scan": "2026-08-11",
-  "last_scan_discovered": 1652,
+  "last_scan_discovered": 1646,
   "last_scan_verified": 0,
   "last_scan_errors": 0,
-  "last_scan_duration_seconds": 82.85,
+  "last_scan_duration_seconds": 82.52,
   "crawler_version": "4.0-data-quality"
 }
