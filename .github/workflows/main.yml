@@ -34,13 +34,8 @@ jobs:
             echo "crawler IS A DIRECTORY"
             ls -la crawler
           elif [ -f "crawler" ]; then
-            echo "crawler IS A FILE - repairing structure"
-            mkdir crawler_tmp
-            mv crawler crawler_tmp/crawl_trials.py
-            mkdir crawler
-            mv crawler_tmp/crawl_trials.py crawler/crawl_trials.py
-            rm -rf crawler_tmp
-            ls -la crawler
+            echo "crawler IS A FILE"
+            exit 1
           else
             echo "ERROR: crawler does not exist"
             exit 1
@@ -66,6 +61,7 @@ jobs:
         run: |
           test -f data/football_trials.json
           echo "Database exists."
+
           python - <<'PY'
           import json
           from pathlib import Path
@@ -73,8 +69,7 @@ jobs:
           p = Path("data/football_trials.json")
           data = json.loads(p.read_text(encoding="utf-8"))
 
-          records = data.get("records", [])
-          print("Records:", len(records))
+          print("Records:", len(data.get("records", [])))
           print("Updated:", data.get("updated_at"))
           print("Last scan:", data.get("last_full_scan"))
           print("Discovered:", data.get("last_scan_discovered"))
