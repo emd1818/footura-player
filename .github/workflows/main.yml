@@ -19,8 +19,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -42,159 +40,23 @@ jobs:
         run: |
           python crawler/crawl_trials.py
 
-      - name: Update database through GitHub API
+      - name: Save database
         env:
           GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
         run: |
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          import time
-          import urllib.error
-          import urllib.request
+          git config user.name "FOOTURA Trials Bot"
+          git config user.email "actions@users.noreply.github.com"
 
-          REPO = os.environ["REPOSITORY"]
-          TOKEN = os.environ["GH_TOKEN"]
-          FILE_PATH = "data/football_trials.json"
-          API = f"https://api.github.com/repos/{REPO}"
+          git add data/football_trials.json
 
-          def request(method, url, payload=None):
-              headers = {
-                  "Authorization": f"Bearer {TOKEN}",
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-                  "User-Agent": "FOOTURA-Trials-Bot",
-              }
+          if git diff --cached --quiet; then
+            echo "No database changes."
+            exit 0
+          fi
 
-              data = None
-              if payload is not None:
-                  data = json.dumps(payload).encode("utf-8")
-                  headers["Content-Type"] = "application/json"
+          git commit -m "Update football trials database"
 
-              req = urllib.request.Request(
-                  url,
-                  data=data,
-                  headers=headers,
-                  method=method,
-              )
+          git fetch origin main
+          git rebase origin/main
 
-              with urllib.request.urlopen(req, timeout=30) as response:
-                  body = response.read().decode("utf-8")
-                  return json.loads(body) if body else {}
-
-          with open(FILE_PATH, "rb") as f:
-              file_bytes = f.read()
-
-          print(f"Database size: {len(file_bytes):,} bytes")
-
-          # Retry the complete Git operation if main changes while we work.
-          for attempt in range(1, 6):
-              print(f"GitHub API update attempt {attempt}/5")
-
-              try:
-                  # 1. Get the current main commit.
-                  ref = request(
-                      "GET",
-                      f"{API}/git/ref/heads/main"
-                  )
-
-                  base_commit = ref["object"]["sha"]
-                  print(f"Current main: {base_commit}")
-
-                  # 2. Get the current tree.
-                  commit = request(
-                      "GET",
-                      f"{API}/git/commits/{base_commit}"
-                  )
-
-                  base_tree = commit["tree"]["sha"]
-
-                  # 3. Create a Git blob containing the new database.
-                  blob = request(
-                      "POST",
-                      f"{API}/git/blobs",
-                      {
-                          "content": base64.b64encode(file_bytes).decode("ascii"),
-                          "encoding": "base64",
-                      },
-                  )
-
-                  blob_sha = blob["sha"]
-
-                  # 4. Create a tree based on the CURRENT main tree.
-                  tree = request(
-                      "POST",
-                      f"{API}/git/trees",
-                      {
-                          "base_tree": base_tree,
-                          "tree": [
-                              {
-                                  "path": FILE_PATH,
-                                  "mode": "100644",
-                                  "type": "blob",
-                                  "sha": blob_sha,
-                              }
-                          ],
-                      },
-                  )
-
-                  tree_sha = tree["sha"]
-
-                  # 5. Create a commit.
-                  new_commit = request(
-                      "POST",
-                      f"{API}/git/commits",
-                      {
-                          "message": "Update football trials database",
-                          "tree": tree_sha,
-                          "parents": [base_commit],
-                      },
-                  )
-
-                  new_commit_sha = new_commit["sha"]
-                  print(f"New commit: {new_commit_sha}")
-
-                  # 6. Move main to the new commit.
-                  request(
-                      "PATCH",
-                      f"{API}/git/refs/heads/main",
-                      {
-                          "sha": new_commit_sha,
-                          "force": False,
-                      },
-                  )
-
-                  print("Database successfully written to main.")
-                  print(f"Commit: {new_commit_sha}")
-                  break
-
-              except urllib.error.HTTPError as error:
-                  body = error.read().decode("utf-8", errors="replace")
-
-                  print(
-                      f"GitHub API error: HTTP {error.code}\n"
-                      f"{body}"
-                  )
-
-                  # 409/422 can occur if main changed between reading the
-                  # current ref and updating it. Rebuild from the new main.
-                  if attempt < 5 and error.code in (409, 422):
-                      print("main changed during update; retrying...")
-                      time.sleep(2)
-                      continue
-
-                  raise
-
-              except Exception as error:
-                  if attempt < 5:
-                      print(f"Temporary error: {error}")
-                      time.sleep(2)
-                      continue
-                  raise
-          PY
-
-      - name: Confirm database update
-        run: |
-          echo "FOOTURA Football Trials database update completed successfully."
+          git push origin HEAD:main
