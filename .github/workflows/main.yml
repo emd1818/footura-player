@@ -42,7 +42,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python crawler/crawl_trials.py
-      - name: Save updated database
+            - name: Save updated database
         run: |
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
@@ -56,5 +56,6 @@ jobs:
 
           git commit -m "Update football trials database"
 
-          git pull --rebase origin main
-          git push origin main
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
