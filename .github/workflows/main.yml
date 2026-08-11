@@ -8,22 +8,52 @@ on:
 jobs:
   update-trials:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          ref: main
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+
+      - name: Check crawler structure
+        run: |
+          echo "=== Repository root ==="
+          pwd
+          ls -la
+
+          echo "=== crawler ==="
+          if [ -d "crawler" ]; then
+            echo "crawler IS A DIRECTORY"
+            ls -la crawler
+          elif [ -f "crawler" ]; then
+            echo "crawler IS A FILE - repairing structure"
+            mkdir crawler_tmp
+            mv crawler crawler_tmp/crawl_trials.py
+            mkdir crawler
+            mv crawler_tmp/crawl_trials.py crawler/crawl_trials.py
+            rm -rf crawler_tmp
+            ls -la crawler
+          else
+            echo "ERROR: crawler does not exist"
+            exit 1
+          fi
+
+          echo "=== Target crawler ==="
+          test -f crawler/crawl_trials.py
+          echo "crawler/crawl_trials.py FOUND"
 
       - name: Install dependencies
         run: |
           if [ -f crawler/requirements.txt ]; then
-            pip install -r crawler/requirements.txt
+            python -m pip install -r crawler/requirements.txt
           fi
 
       - name: Run football trials crawler
@@ -32,10 +62,35 @@ jobs:
         run: |
           python crawler/crawl_trials.py
 
+      - name: Check database
+        run: |
+          test -f data/football_trials.json
+          echo "Database exists."
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path("data/football_trials.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+
+          records = data.get("records", [])
+          print("Records:", len(records))
+          print("Updated:", data.get("updated_at"))
+          print("Last scan:", data.get("last_full_scan"))
+          print("Discovered:", data.get("last_scan_discovered"))
+          print("Verified:", data.get("last_scan_verified"))
+          PY
+
       - name: Save updated database
         run: |
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
+
           git add data/football_trials.json
-          git diff --cached --quiet || git commit -m "Update football trials database"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No database changes."
+          else
+            git commit -m "Update football trials database"
+            git push
+          fi
