@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "15 2 * * *"
 
+concurrency:
+  group: footura-trials-daily
+  cancel-in-progress: false
+
 jobs:
   update-trials:
     runs-on: ubuntu-latest
@@ -42,6 +46,9 @@ jobs:
           git config user.name "FOOTURA Trials Bot"
           git config user.email "actions@users.noreply.github.com"
 
+          git fetch origin main
+          git rebase origin/main
+
           git add data/football_trials.json
 
           if git diff --cached --quiet; then
@@ -51,6 +58,17 @@ jobs:
 
           git commit -m "Update football trials database"
 
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Database successfully pushed."
+              exit 0
+            fi
+
+            echo "Push failed. Refreshing main and retrying..."
+            git fetch origin main
+            git rebase origin/main
+          done
+
+          echo "ERROR: Could not push database after 3 attempts."
+          exit 1
+
