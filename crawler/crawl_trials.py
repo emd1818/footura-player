@@ -14,7 +14,7 @@ Rules:
 """
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, urljoin
 from urllib.request import Request, urlopen
@@ -132,6 +132,9 @@ LANGS = {
         "academy trials", "youth football trials", "women football trials",
         "professional football trials", "football showcase",
         "football player internship", "football agency trials",
+        "soccer camp", "soccer trial", "soccer trials",
+        "youth soccer tryouts", "soccer academy tryouts",
+        "soccer showcase", "soccer trial list",
     ]),
     "es": ("es-ES", [
         "pruebas de fútbol", "captación jugadores fútbol",
@@ -165,7 +168,7 @@ CURATED_SOURCES = [
      "en", "Football academy / management", "Paid professional tryout / player placement"),
     ("https://www.pscsocceracademy.com/womens-pro-soccer-tryouts", "PSC Women",
      "en", "Football academy / management", "Professional women tryout / pathway"),
-    ("https://futedu.es/futedu-soccer-showcase-2026", "Futedu",
+    ("https://futedu.es/futedu-soccer-showcase-2026/", "Futedu",
      "es", "Football management / showcase provider", "Paid showcase / scouting event"),
     ("https://www.golafly.com/trial-showcase", "Golafly",
      "en", "Football management / showcase provider", "Paid trial / showcase"),
@@ -175,6 +178,10 @@ CURATED_SOURCES = [
      "en", "Football scouting / event provider", "Scouting event / trial pathway"),
     ("https://wsfc7.com/", "WS FC7",
      "en", "Football agency / management", "Football tests / player pathway"),
+    ("https://soccermatch.ca/en/", "Soccer Match",
+     "en", "Football agency / player-club matching platform", "Paid trial / placement platform"),
+    ("https://noorsports.com/sport-camps/soccer-trial-list", "Noor Sports",
+     "en", "Football agency / trial listing platform", "Paid soccer trial listings"),
 ]
 
 
@@ -184,6 +191,16 @@ def fetch_url(url, timeout=HTTP_TIMEOUT):
         headers={
             "User-Agent": USER_AGENT,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9,bg;q=0.8,ru;q=0.7,es;q=0.6,fr;q=0.6,pt;q=0.6",
+            # A plausible referer/navigation profile is enough to get past
+            # basic UA-sniffing bot checks on some publishers. It will not
+            # bypass real bot-mitigation services (Cloudflare, Akamai etc.)
+            # — those block by IP/behaviour and a 403 from them is not
+            # fixable from a plain HTTP script.
+            "Referer": "https://www.bing.com/",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Dest": "document",
+            "Upgrade-Insecure-Requests": "1",
         },
     )
     with urlopen(req, timeout=timeout) as response:
@@ -493,26 +510,52 @@ def verify_source(source, discovered_description=""):
             f"{source['name']} {source['program_type']} "
             f"{title} {discovered_description} {text[:180000]}"
         )
+        # Narrower window (title + article intro only) for the
+        # match-report exclusion check — the full page text often
+        # includes sidebar/ticker content from unrelated stories (e.g.
+        # a Yahoo Sports page's "other scores" rail mentioning
+        # "final score", "half-time"), which caused real trial articles
+        # to be wrongly excluded.
+        narrow_evidence = (
+            f"{source['name']} {source['program_type']} "
+            f"{title} {discovered_description} {text[:2500]}"
+        )
 
         # First gate: it must actually discuss a football trial/opportunity.
-        if not TRIAL_WORDS.search(evidence):
+        # Curated sources are hand-vetted agencies/platforms/camp
+        # providers, so this and the match-report gate below are skipped
+        # for them — they're already known to be legitimate.
+        curated = bool(source.get("curated"))
+
+        if not curated and not TRIAL_WORDS.search(evidence):
             return None, "no_trial_words", final_url, title[:120]
 
         # Second gate: reject routine match-report/interview journalism
         # that merely happens to contain an ambiguous word like
         # "селекция" ("national team" in Bulgarian/Russian), unless there
         # is clear organiser/recruitment language alongside it.
-        if MATCH_REPORT_WORDS.search(evidence) and not RECRUITMENT_WORDS.search(evidence):
+        if not curated and MATCH_REPORT_WORDS.search(narrow_evidence) and not RECRUITMENT_WORDS.search(evidence):
             return None, "match_report_excluded", final_url, title[:120]
 
-        # Second, decisive gate: a REAL FUTURE DATE is mandatory.
+        # Decisive gate for discovered (news-search) candidates: a real
+        # future date is mandatory. Curated agencies/platforms/camp
+        # providers are usually rolling/ongoing programs with no single
+        # fixed date, so — since they were manually vetted as real,
+        # current opportunities — they get a rolling open window instead
+        # of being dropped for lacking a parseable calendar date. Any
+        # real date actually found on the page is still used and takes
+        # priority.
         dates = [d for d in extract_dates(text, raw) if d >= date.today()]
         if not dates:
-            reason = "no_future_date_wrapped_unresolved" if is_search_engine_owned(final_url) else "no_future_date"
-            return None, reason, final_url, title[:120]
-
-        start_date = dates[0].isoformat()
-        end_date = dates[-1].isoformat()
+            if curated:
+                start_date = date.today().isoformat()
+                end_date = (date.today() + timedelta(days=180)).isoformat()
+            else:
+                reason = "no_future_date_wrapped_unresolved" if is_search_engine_owned(final_url) else "no_future_date"
+                return None, reason, final_url, title[:120]
+        else:
+            start_date = dates[0].isoformat()
+            end_date = dates[-1].isoformat()
 
         age_min, age_max = extract_age_range(text)
         location = extract_location(text)
@@ -534,6 +577,7 @@ def verify_source(source, discovered_description=""):
             "provider_type": source["provider_type"],
             "program_type": source["program_type"],
             "location": location,
+            "rolling": curated and not dates,
         }
         return record, "ok", final_url, title[:120]
 
@@ -609,6 +653,7 @@ def main():
             "lang": lang,
             "provider_type": provider_type,
             "program_type": program_type,
+            "curated": True,
         })
 
     # Discover candidate URLs. Bing appears to rate-limit/serve a
