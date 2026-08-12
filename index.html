@@ -3,7 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FOOTURA PLAYER — Professional Prototype</title>
+<title>FOOTURA PLAYER — Индивидуално развитие на футболист</title>
+<meta name="description" content="FOOTURA PLAYER е приложение за индивидуално развитие на футболисти: тренировъчни програми по игрови модел, ежедневни упражнения с ясен критерий и актуални обяви за реални футболни проби в България и чужбина.">
+<link rel="canonical" href="https://footura-player.spring-meadow-6cfc.workers.dev/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FOOTURA PLAYER">
+<meta property="og:title" content="FOOTURA PLAYER — Индивидуално развитие на футболист">
+<meta property="og:description" content="Тренировъчни програми по игрови модел, ежедневни упражнения с ясен критерий и актуални обяви за реални футболни проби в България и чужбина.">
+<meta property="og:url" content="https://footura-player.spring-meadow-6cfc.workers.dev/">
+<meta property="og:locale" content="bg_BG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FOOTURA PLAYER — Индивидуално развитие на футболист">
+<meta name="twitter:description" content="Тренировъчни програми по игрови модел, ежедневни упражнения с ясен критерий и актуални обяви за реални футболни проби в България и чужбина.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23061019'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23c7ff00' font-family='Arial,sans-serif' font-weight='bold'%3EF%3C/text%3E%3C/svg%3E">
 <style>
 :root{
  --bg:#061019;--bg2:#081521;--panel:#0d1b29;--panel2:#112438;--line:#203448;
@@ -104,7 +116,7 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
  </aside>
 
 <main>
-<header class="top"><div class="crumb" id="crumb">FOOTURA PLAYER / НАЧАЛО</div><div class="topActions"><button class="iconBtn" onclick="toast('Няма нови известия')">♧</button></div></header>
+<header class="top"><div class="crumb" id="crumb">FOOTURA PLAYER / НАЧАЛО</div><div class="topActions"></div></header>
 <div class="content">
 
 <section id="home" class="screen active">
@@ -122,7 +134,7 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
 </section>
 
 <section id="training" class="screen">
- <div class="sectionHead"><div><h1>ТРЕНИРОВКИ</h1><div class="muted">Упражнение → критерий → игрово поведение → мач.</div></div><button class="secondary" onclick="toast('Филтрите са готови за позиция, фокус и ниво')">☷ ФИЛТРИ</button></div>
+ <div class="sectionHead"><div><h1>ТРЕНИРОВКИ</h1><div class="muted">Упражнение → критерий → игрово поведение → мач.</div></div></div>
  <div class="tabs"><button class="active" data-tab="today" onclick="trainingTab('today')">ДНЕШНА</button><button data-tab="exercises">УПРАЖНЕНИЯ</button><button data-tab="programs">ПРОГРАМИ</button></div>
  <div id="trainToday" class="trainPanel">
   <div class="grid2"><div class="card"><span class="eyebrow">ДНЕШЕН ФОКУС</span><h2>Решение под натиск</h2><p class="muted">Сканирай преди получаване. Приеми с отворено тяло. Избери действие преди натиска.</p><div class="progressLine"><i style="width:75%"></i></div><p class="muted">3 / 4 упражнения</p></div><div class="card"><span class="eyebrow">ВРЕМЕ</span><h2 style="font-size:34px">40 <span class="muted" style="font-size:15px">мин</span></h2><p class="muted">4 упражнения · индивидуална сесия</p><button class="primary" onclick="startWorkout()">ЗАПОЧНИ ТРЕНИРОВКАТА</button></div></div>
@@ -460,19 +472,12 @@ function openProgram(i){
 
 
 
-const localVideos = [
- {file:"01_.mp4",title:"Първо докосване – квадрат",cat:"technique",exercise:"Упражнение 01 · Първо докосване – квадрат",note:"Подготви топката за следващото действие."}, {file:"02_.mp4",title:"Първо докосване под натиск",cat:"technique",exercise:"Упражнение 02 · Първо докосване под натиск",note:"Контролирай посоката преди защитникът да затвори."}, {file:"03_.mp4",title:"Пас с две докосвания",cat:"technique",exercise:"Упражнение 03 · Пас с две докосвания",note:"Приеми и подай с минимални излишни действия."}, {file:"04_.mp4",title:"Пас през врата",cat:"technique",exercise:"Упражнение 04 · Пас през врата",note:"Подай в движение и към следващото пространство."}, {file:"05_.mp4",title:"Сканиране преди приемане",cat:"decision",exercise:"Упражнение 05 · Сканиране преди приемане",note:"Виж информацията преди топката да пристигне."}, {file:"06_.mp4",title:"Водене с промяна на посока",cat:"technique",exercise:"Упражнение 06 · Водене с промяна на посока",note:"Дръж топката близо и промени ритъма."}, {file:"07_1v1.mp4",title:"1v1 – атака",cat:"1v1",exercise:"Упражнение 07 · 1v1 – атака",note:"Създай предимство, не просто движение."}, {file:"08_1v1.mp4",title:"1v1 – защита",cat:"defence",exercise:"Упражнение 08 · 1v1 – защита",note:"Управлявай дистанцията и посоката."}, {file:"09_.mp4",title:"Финт + ускорение",cat:"1v1",exercise:"Упражнение 09 · Финт + ускорение",note:"Използвай финта, за да се отделиш."}, {file:"10_.mp4",title:"Завършване след подаване",cat:"finish",exercise:"Упражнение 10 · Завършване след подаване",note:"Първото докосване трябва да подготви удара."}, {file:"11_.mp4",title:"Завършване с по-слаб крак",cat:"finish",exercise:"Упражнение 11 · Завършване с по-слаб крак",note:"Завърши контролирано и с двата крака."}, {file:"12_.mp4",title:"Удар след движение",cat:"finish",exercise:"Упражнение 12 · Удар след движение",note:"Атакувай зоната и завърши без излишно спиране."}, {file:"13_.mp4",title:"Центриране в движение",cat:"finish",exercise:"Упражнение 13 · Центриране в движение",note:"Достави топката към целева зона в движение."}, {file:"14_.mp4",title:"Пресиране отстрани",cat:"transition",exercise:"Упражнение 14 · Пресиране отстрани",note:"Затвори линията и насочи противника."}, {file:"15_.mp4",title:"Отнемане без фаул",cat:"defence",exercise:"Упражнение 15 · Отнемане без фаул",note:"Изчакай правилния момент за намеса."}, {file:"16_180.mp4",title:"Ориентация 180°",cat:"decision",exercise:"Упражнение 16 · Ориентация 180°",note:"Сканирай зад рамото и приеми в правилна посока."}, {file:"17_.mp4",title:"Трети човек",cat:"decision",exercise:"Упражнение 17 · Трети човек",note:"Пасът освобождава следващото движение."}, {file:"18_.mp4",title:"Атака на пространство",cat:"decision",exercise:"Упражнение 18 · Атака на пространство",note:"Таймингът на движението е част от решението."}, {file:"19_5.mp4",title:"Преход 5 секунди",cat:"transition",exercise:"Упражнение 19 · Преход 5 секунди",note:"Реагирай веднага след промяна на притежанието."}, {file:"20_.mp4",title:"Ситуационно решение – 3 опции",cat:"decision",exercise:"Упражнение 20 · Ситуационно решение – 3 опции",note:"Избери най-доброто от три възможности."}, {file:"21_.mp4",title:"Комплексна индивидуална серия",cat:"finish",exercise:"Упражнение 21 · Комплексна индивидуална серия",note:"Свържи приемане, решение, движение и завършване."}, ];
-
-
-
-
 
 
 function openModel(type){const x={possession:["Притежание и прогресия","Създавай превъзходство. Дай ширина и дълбочина. Търси прогресираща топка и третия човек."],transition:["Преходи","При загуба реагирай първи. При спечелване оцени има ли безопасен и смислен път напред."],defence:["Защита и контрол","Не преследвай автоматично топката. Управлявай пространството, дистанцията и връзката с блока."]}[type];openModal(x[0],x[1])}
 function openModal(title,body){document.getElementById("modalBody").innerHTML=`<span class="tag">FOOTURA PLAYER</span><h1 style="margin-top:10px">${title}</h1><div class="muted" style="font-size:15px;line-height:1.65;margin-top:15px">${body}</div>`;document.getElementById("modal").classList.add("open")}
 function closeModal(){document.getElementById("modal").classList.remove("open")}
 function startWorkout(){trainingTab("today");toast("Тренировката е започната")}
-function saveMatch(){const data=[0,1,2,3,4].map(i=>document.getElementById("q"+i)?.value||"");localStorage.setItem("fp_match_v5",JSON.stringify(data));toast("Следмачовият разбор е записан")}
 function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";clearTimeout(window._t);window._t=setTimeout(()=>e.style.display="none",2200)}
 render();
 trainingTab('today');
@@ -888,7 +893,7 @@ function renderTrials(){
   <span class="tag">${trialsTab==="active"?"АКТУАЛНА":"МИНАЛА"}</span></div>
   <div class="trialMeta"><span class="trialPill">📅 ${escTrial(t.trial_date||trialDateRange(t))}</span><span class="trialPill">📍 ${escTrial(t.location||"—")}</span><span class="trialPill">🌍 ${escTrial(t.country||"—")}</span><span class="trialPill">文 ${escTrial(t.language||"—")}</span></div>
   <div class="trialDesc">${escTrial(t.description||"")}</div>
-  <div class="trialRequirements"><b>Изисквания:</b> ${escTrial(t.requirements||"Не са посочени.")}</div>
+  ${t.requirements?`<div class="trialRequirements"><b>Изисквания:</b> ${escTrial(t.requirements)}</div>`:""}
   ${t.source_url?`<div class="trialSource"><a class="trialSourceLink" href="${escTrial(t.source_url)}" target="_blank" rel="noopener noreferrer">↗ Първоизточник · отвори в нов прозорец</a></div>`:""}
  </article>`).join("");
 }
