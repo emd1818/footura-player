@@ -559,44 +559,6 @@ const FALLBACK_TRIALS = [
     "verified_at": "2026-08-09T08:02:51.455666+00:00"
   },
   {
-    "id": "cn-cfa-2012-2026",
-    "title": "男子精英青少年球员全国训练营 / 选拔",
-    "club": "Chinese Football Association",
-    "country": "China",
-    "language": "Chinese",
-    "city": "China",
-    "trial_start": "2026-05-08",
-    "trial_end": "2026-06-04",
-    "age_min": 13,
-    "age_max": 14,
-    "gender": "Boys",
-    "status": "PAST",
-    "description": "Национален тренировъчен лагер и селекция за набор 2012, включително избор на 24 играчи за тренировъчно турне във Великобритания.",
-    "requirements": "Набор 2012; участие чрез системата на CFA.",
-    "source_url": "https://www.thecfa.cn/qxzxxtzggjxtz/20260708/37852.html",
-    "source_name": "Chinese Football Association",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00"
-  },
-  {
-    "id": "cn-cfa-2013-2026",
-    "title": "男子精英青少年球员大区训练营",
-    "club": "Chinese Football Association",
-    "country": "China",
-    "language": "Chinese",
-    "city": "Dalian",
-    "trial_start": "2026-06-12",
-    "trial_end": "2026-06-23",
-    "age_min": 12,
-    "age_max": 13,
-    "gender": "Boys",
-    "status": "PAST",
-    "description": "Регионален елитен лагер за набор 2013 като част от системата за селекция и развитие.",
-    "requirements": "Набор 2013; селекция чрез CFA.",
-    "source_url": "https://www.thecfa.cn/qxzxxtzggjxtz/20260708/37846.html",
-    "source_name": "Chinese Football Association",
-    "verified_at": "2026-08-09T08:02:51.455666+00:00"
-  },
-  {
     "id": "uk-fulham-girls-u1314-2026",
     "title": "Girls Development Centre Open Trials — U13/U14",
     "club": "Fulham FC",
@@ -838,23 +800,6 @@ const FALLBACK_TRIALS = [
     "verified_at": "2026-08-10T05:45:00+00:00"
   },
   {
-    "id": "cn-cfa-dalian-jul12-2026",
-    "title": "“雏凤计划”国内选拔总营 2026",
-    "club": "中国足球发展基金会 / 中国足球协会",
-    "country": "China",
-    "language": "Chinese",
-    "city": "Dalian",
-    "trial_start": "2026-07-12",
-    "trial_end": "2026-07-17",
-    "gender": "Youth",
-    "status": "PAST",
-    "description": "Национален селекционен лагер за млади футболни таланти, с последваща възможност за международна подготовка.",
-    "requirements": "Подбор чрез съответните футболни структури; селекция на участници.",
-    "source_url": "https://www.zqjjh.org.cn/zx/tzgg/2026/0709/701906.html",
-    "source_name": "中国足球发展基金会 / 中国足球协会",
-    "verified_at": "2026-08-10T05:45:00+00:00"
-  },
-  {
     "id": "uk-pro11-manchester-sep06-2026",
     "title": "Pro11 Manchester — Pre-Academy & U8-U16 Trials",
     "club": "Pro11 Trials",
@@ -917,11 +862,23 @@ let TRIALS_META = {updated_at:null,last_full_scan:null};
 let trialsTab="active";
 function escTrial(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
 function trialDate(v){if(!v)return "Дата не е посочена";const d=new Date(v);return isNaN(d)?"Дата не е посочена":d.toLocaleDateString("bg-BG",{day:"2-digit",month:"2-digit",year:"numeric"});}
+function trialDateRange(t){
+ if(t.rolling) return "Постоянна програма · записване по всяко време";
+ if(!t.trial_start && !t.trial_end) return "Дата не е посочена";
+ const s=trialDate(t.trial_start), e=trialDate(t.trial_end);
+ if(t.trial_start && t.trial_end && t.trial_start!==t.trial_end) return s+" – "+e;
+ return s!=="Дата не е посочена" ? s : e;
+}
 function renderTrials(){
  const list=document.getElementById("trialsList"); if(!list)return;
  const today=new Date(); today.setHours(0,0,0,0);
  const filtered=FOOTBALL_TRIALS.filter(t=>{
+   // Only verified records are shown. Anything still under review (no
+   // confirmed status/date, e.g. "REVIEW") is intentionally hidden — it
+   // is not yet a confirmed real trial and must never surface as "past".
+   if(t.status && t.status!=="ACTIVE" && t.status!=="PAST") return false;
    const end=t.trial_end ? new Date(t.trial_end+"T23:59:59") : (t.date ? new Date(t.date+"T23:59:59") : null);
+   if(!end && !t.status) return false;
    const active=end ? end>=today : (t.status==="ACTIVE");
    return trialsTab==="active" ? active : !active;
  });
@@ -929,7 +886,7 @@ function renderTrials(){
  list.innerHTML=filtered.map(t=>`<article class="trialCard">
   <div class="trialTop"><div><div class="trialClub">${escTrial(t.club)}</div><div class="trialTitle">${escTrial(t.title)}</div></div>
   <span class="tag">${trialsTab==="active"?"АКТУАЛНА":"МИНАЛА"}</span></div>
-  <div class="trialMeta"><span class="trialPill">📅 ${escTrial(t.trial_date||trialDate(t.date))}</span><span class="trialPill">📍 ${escTrial(t.location||"—")}</span><span class="trialPill">🌍 ${escTrial(t.country||"—")}</span><span class="trialPill">文 ${escTrial(t.language||"—")}</span></div>
+  <div class="trialMeta"><span class="trialPill">📅 ${escTrial(t.trial_date||trialDateRange(t))}</span><span class="trialPill">📍 ${escTrial(t.location||"—")}</span><span class="trialPill">🌍 ${escTrial(t.country||"—")}</span><span class="trialPill">文 ${escTrial(t.language||"—")}</span></div>
   <div class="trialDesc">${escTrial(t.description||"")}</div>
   <div class="trialRequirements"><b>Изисквания:</b> ${escTrial(t.requirements||"Не са посочени.")}</div>
   ${t.source_url?`<div class="trialSource"><a class="trialSourceLink" href="${escTrial(t.source_url)}" target="_blank" rel="noopener noreferrer">↗ Първоизточник · отвори в нов прозорец</a></div>`:""}
