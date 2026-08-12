@@ -22,6 +22,7 @@ import hashlib
 import html
 import json
 import re
+import time
 import urllib.parse
 import xml.etree.ElementTree as ET
 
@@ -40,13 +41,51 @@ TRIAL_WORDS = re.compile(
     r"\b("
     r"trial|trials|tryout|try-outs|showcase|"
     r"football camp|soccer camp|academy trial|open trial|"
-    r"selection|recruitment|scouting|talent identification|"
+    r"recruitment|scouting|talent identification|"
     r"player placement|internship|"
-    r"проб|проби|кастинг|селек|селекция|просмотр|отбор|"
-    r"prueba|pruebas|captación|selección|"
+    r"проб|проби|кастинг|"
+    r"детска футболна селекция|юношеска футболна селекция|"
+    r"футболна селекция за деца|футболна селекция за юноши|"
+    r"клубна селекция|селекция на млади таланти|"
+    r"футбольные просмотры|отбор футболистов|селекция футболистов|"
+    r"prueba|pruebas|captación|selección de jugadores|selección juvenil|"
     r"détection|essai|recrutement|"
-    r"peneira|seletiva|avaliação|captação|"
-    r"футбольные просмотры|отбор футболистов"
+    r"peneira|seletiva|avaliação|captação"
+    r")\b",
+    re.I,
+)
+
+# Words that reliably signal ordinary match/transfer reporting rather than
+# a real trial/tryout opportunity. "селекция"/"selection" alone is
+# ambiguous in Bulgarian/Russian/Spanish — it also means "national team",
+# so a bare match on TRIAL_WORDS is not enough; this excludes routine
+# sports journalism (match reports, post-match quotes, standings).
+MATCH_REPORT_WORDS = re.compile(
+    r"\b("
+    r"минута|полувреме|дузпа|жълт картон|червен картон|головата|"
+    r"мениджърът на|треньорът на|националния отбор|национален отбор|"
+    r"победи|загуби|наравно|краен резултат|отборът победи|"
+    r"гол в|стадион|шампионска лига мач|"
+    r"матч завершился|сборная|тренер сборной|главный тренер|"
+    r"post-match|half-time|full-time|final score|head coach of|"
+    r"manager of the|national team|press conference"
+    r")\b",
+    re.I,
+)
+
+# Explicit organiser/recruitment language — clubs, academies, agencies and
+# football managers actually running a trial, as opposed to a news outlet
+# merely using an ambiguous word like "selection" in a match report.
+RECRUITMENT_WORDS = re.compile(
+    r"\b("
+    r"проби|кастинг|набор на играчи|набор от играчи|кандидатствай|"
+    r"регистрация за проби|заявка за участие|открита тренировка|"
+    r"talent id|scouting event|open trial|tryout|trial date|"
+    r"academy trial|club trial|agency trial|"
+    r"regístrate|inscripción|inscreva-se|inscription|"
+    r"футбольные просмотры|детско-юношеска школа|футболна академия|"
+    r"football academy|soccer academy|football agency|player agency|"
+    r"management company|placement agency"
     r")\b",
     re.I,
 )
@@ -423,6 +462,13 @@ def resolve_wrapped_link(url, raw):
 def verify_source(source, discovered_description=""):
     url = source["url"]
 
+    # Bing wraps some results in a apiclick.aspx tracking redirect that
+    # 403s on a plain fetch — the real URL is in its own query string, so
+    # decode it before ever making a request.
+    pre_resolved = resolve_bing_redirect(url)
+    if pre_resolved:
+        url = pre_resolved
+
     try:
         final_url, body, content_type = fetch_url(url)
     except Exception as exc:
@@ -451,6 +497,13 @@ def verify_source(source, discovered_description=""):
         # First gate: it must actually discuss a football trial/opportunity.
         if not TRIAL_WORDS.search(evidence):
             return None, "no_trial_words", final_url, title[:120]
+
+        # Second gate: reject routine match-report/interview journalism
+        # that merely happens to contain an ambiguous word like
+        # "селекция" ("national team" in Bulgarian/Russian), unless there
+        # is clear organiser/recruitment language alongside it.
+        if MATCH_REPORT_WORDS.search(evidence) and not RECRUITMENT_WORDS.search(evidence):
+            return None, "match_report_excluded", final_url, title[:120]
 
         # Second, decisive gate: a REAL FUTURE DATE is mandatory.
         dates = [d for d in extract_dates(text, raw) if d >= date.today()]
@@ -505,8 +558,17 @@ def bing_news_rss(language_code, query):
         + "&format=RSS&setmkt=" + quote(market)
     )
 
-    _, body, _ = fetch_url(url)
-    root = ET.fromstring(body)
+    _, body, content_type = fetch_url(url)
+
+    try:
+        root = ET.fromstring(body)
+    except ET.ParseError as exc:
+        # Bing occasionally answers a burst of parallel requests with an
+        # HTML block/CAPTCHA page instead of RSS. Surface a snippet of
+        # what actually came back so a future run's log shows *why*,
+        # instead of just "not well-formed".
+        snippet = decode_body(body, content_type)[:160].replace("\n", " ")
+        raise RuntimeError(f"{exc} | first bytes: {snippet!r}") from exc
 
     results = []
     for item in root.findall(".//item"):
@@ -549,17 +611,20 @@ def main():
             "program_type": program_type,
         })
 
-    # Discover candidate URLs.
+    # Discover candidate URLs. Bing appears to rate-limit/serve a
+    # block page when hit with a large parallel burst, so this runs
+    # with lower concurrency and a small stagger between submissions
+    # rather than firing all 30 queries at once.
     discovery_jobs = []
     for lang, (_, queries) in LANGS.items():
         for query in queries:
             discovery_jobs.append((lang, query))
 
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = {
-            pool.submit(bing_news_rss, lang, query): (lang, query)
-            for lang, query in discovery_jobs
-        }
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {}
+        for lang, query in discovery_jobs:
+            futures[pool.submit(bing_news_rss, lang, query)] = (lang, query)
+            time.sleep(0.15)
 
         for future in as_completed(futures):
             lang, query = futures[future]
@@ -583,7 +648,7 @@ def main():
 
     verified = 0
     reason_counts = {}
-    samples = {"no_future_date": [], "no_future_date_wrapped_unresolved": [], "no_trial_words": [], "fetch_error": [], "parse_error": []}
+    samples = {"no_future_date": [], "no_future_date_wrapped_unresolved": [], "no_trial_words": [], "match_report_excluded": [], "fetch_error": [], "parse_error": []}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {
