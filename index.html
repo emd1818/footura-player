@@ -100,6 +100,7 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
 .trialDesc{color:#b4c2ca;line-height:1.55}.trialRequirements{margin-top:13px;padding-top:13px;border-top:1px solid #203441;line-height:1.55}
 .trialContact{margin-top:12px;color:var(--accent);font-weight:800;font-size:12px}.trialSource{margin-top:10px;font-size:10px;color:#7f929f}
 .trialSource a{color:#9fb1bc}.trialSourceLink{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid #2b4557;border-radius:8px;text-decoration:none;font-weight:800}.trialSourceLink:hover{border-color:var(--accent);color:var(--accent)}.trialEmpty{padding:30px;text-align:center;border:1px dashed #304958;border-radius:14px;color:#8ea0aa}
+.resourceCard{display:flex;flex-direction:column;gap:10px}.resourceCard .resourceDomain{color:#9fb1bc;font-size:12px;letter-spacing:.3px}.resourceCard .resourceDesc{color:var(--muted);line-height:1.55}
 @media(max-width:700px){.trialTop{display:block}.trialTitle{font-size:18px}}
 </style>
 </head>
@@ -113,6 +114,7 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
   <button data-go="theory"><span class="navIcon">◈</span><span data-i18n="nav_theory">Теория</span></button>
   <button data-go="trials"><span class="navIcon">⚽</span><span data-i18n="nav_trials">ФУТБОЛНИ ПРОБИ</span></button>
   <button data-go="model"><span class="navIcon">▦</span><span data-i18n="nav_model">Игрови модел</span></button>
+  <button data-go="resources"><span class="navIcon">☍</span><span data-i18n="nav_resources">Полезни източници</span></button>
  </nav>
  </aside>
 
@@ -136,6 +138,8 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
  <div class="card" id="homeExercises"></div>
  <div class="sectionHead"><h2 data-i18n="nav_trials">ФУТБОЛНИ ПРОБИ</h2><button class="link" onclick="go('trials')" data-i18n="home_open_link">ОТВОРИ →</button></div>
  <div class="card"><p class="muted" data-i18n="home_trials_desc">Актуални и минали възможности от клубове, академии, агенции, showcases, camps и други организатори.</p></div>
+ <div class="sectionHead"><h2 data-i18n="nav_resources">Полезни източници</h2><button class="link" onclick="go('resources')" data-i18n="home_open_link">ОТВОРИ →</button></div>
+ <div class="card"><p class="muted" data-i18n="home_resources_desc">Подбрани външни сайтове за треньорски съвети, футболна техника, стипендии в чужбина и лицензирани агенти.</p></div>
 </section>
 
 <section id="training" class="screen">
@@ -163,6 +167,15 @@ h1{font-size:36px;line-height:1.08;margin:0 0 6px;letter-spacing:-1px}h2{font-si
  </div>
  <div id="trialsStatus" class="muted" style="margin:12px 0"></div>
  <div id="trialsList" class="trialsList"></div>
+</section>
+
+<section id="resources" class="screen">
+ <div class="sectionHead">
+  <div><span class="eyebrow">FOOTURA PLAYER · EXTERNAL LINKS</span>
+  <h1 data-i18n="nav_resources">Полезни източници</h1>
+  <div class="muted" data-i18n="resources_subtitle">Подбрани външни сайтове за треньорски съвети, футболна техника, лагери, стипендии и лицензирани агенти.</div></div>
+ </div>
+ <div id="resourcesList" class="grid2"></div>
 </section>
 
 <section id="theory" class="screen">
@@ -563,7 +576,15 @@ modelInfo: {
  transition:["Преходи","При загуба реагирай първи. При спечелване оцени има ли безопасен и смислен път напред."],
  defence:["Защита и контрол","Не преследвай автоматично топката. Управлявай пространството, дистанцията и връзката с блока."]
 },
-handbook: ["Наръчник","Трите пласта са свързани: притежание и прогресия → преходи → защита и контрол. Във всяка ситуация футболистът разпознава, избира, изпълнява и оценява."]
+handbook: ["Наръчник","Трите пласта са свързани: притежание и прогресия → преходи → защита и контрол. Във всяка ситуация футболистът разпознава, избира, изпълнява и оценява."],
+resources: [
+ ["SoccerHelp.com","https://soccerhelp.com/","Безплатен ресурс за детско-юношески треньори: стотици „no lines“ practice games, съвети, формации и позиции — вместо класически line drills."],
+ ["ExpertFootball.com","https://expertfootball.com/","Един от първите онлайн ресурси за футболно обучение: техника, дриблиране, пасуване, контрол на топката и роли по позиции, обяснени стъпка по стъпка."],
+ ["FirstPointUSA.com","http://www.firstpointusa.com/","Агенция за спортни стипендии — помага на играчи да получат футболна стипендия в американски колеж/университет чрез мрежа от треньори и организирани проби."],
+ ["БФС — Агенти на играчи","https://bfunion.bg/%D0%91%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B0-%D0%B0%D0%B3%D0%B5%D0%BD%D1%82%D0%B8-%D0%BD%D0%B0-%D0%B8%D0%B3%D1%80%D0%B0%D1%87%D0%B8","Официалният регистър и правилник на Българския футболен съюз за лицензираните агенти (посредници) на футболисти — вписване, права и задължения."],
+ ["Soccer Camps International","https://soccercampsinternational.com/soccer-camps/","Каталог с международни футболни лагери в Европа за играчи от различни възрасти — по държава, продължителност и ниво."],
+ ["SoccerXpert.com","https://soccerxpert.com/","Библиотека от стотици футболни упражнения и игри за треньори, организирани по възраст и фокус на уменията, с инструмент за планиране на тренировки."]
+]
 },
 en: {
 exercises: [
@@ -664,7 +685,15 @@ modelInfo: {
  transition:["Transitions","After losing the ball, react first. After winning it, assess whether there's a safe, meaningful way forward."],
  defence:["Defense & Control","Don't chase the ball automatically. Manage space, distance, and the connection with the block."]
 },
-handbook: ["Handbook","The three layers are connected: possession & progression → transitions → defense & control. In every situation the player recognizes, chooses, executes, and evaluates."]
+handbook: ["Handbook","The three layers are connected: possession & progression → transitions → defense & control. In every situation the player recognizes, chooses, executes, and evaluates."],
+resources: [
+ ["SoccerHelp.com","https://soccerhelp.com/","A free resource for youth coaches: hundreds of \"no lines\" practice games, tips, formations and positions — built around game-based drills instead of classic line drills."],
+ ["ExpertFootball.com","https://expertfootball.com/","One of the earliest online soccer training resources: technique, dribbling, passing, ball control and position roles, explained step by step."],
+ ["FirstPointUSA.com","http://www.firstpointusa.com/","A sports scholarship agency — helps players secure a soccer scholarship at a US college or university through a network of coaches and organized trials."],
+ ["Bulgarian Football Union — Player Agents","https://bfunion.bg/%D0%91%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B0-%D0%B0%D0%B3%D0%B5%D0%BD%D1%82%D0%B8-%D0%BD%D0%B0-%D0%B8%D0%B3%D1%80%D0%B0%D1%87%D0%B8","The Bulgarian Football Union's official registry and regulations for licensed player agents (intermediaries) — registration, rights and obligations."],
+ ["Soccer Camps International","https://soccercampsinternational.com/soccer-camps/","A catalogue of international soccer camps across Europe for players of different ages — by country, duration and level."],
+ ["SoccerXpert.com","https://soccerxpert.com/","A library of hundreds of soccer drills and games for coaches, organized by age and skill focus, with a practice-planning tool."]
+]
 }
 };
 
@@ -730,7 +759,11 @@ reco_empty_desc:"Отговори на 3 кратки въпроса и ще п�
 reco_empty_btn:"НАПРАВИ САМООЦЕНКА",
 reco_title_label:"ПРЕПОРЪЧАНА ПРОГРАМА",
 reco_priority_label:"ПРИОРИТЕТНИ УПРАЖНЕНИЯ ЗА ТЕБ",
-reco_redo_btn:"ПРЕНАПРАВИ", reco_open_program_btn:"ОТВОРИ ПРОГРАМАТА"
+reco_redo_btn:"ПРЕНАПРАВИ", reco_open_program_btn:"ОТВОРИ ПРОГРАМАТА",
+nav_resources:"Полезни източници", crumb_resources:"ПОЛЕЗНИ ИЗТОЧНИЦИ",
+resources_subtitle:"Подбрани външни сайтове за треньорски съвети, футболна техника, лагери, стипендии и лицензирани агенти.",
+home_resources_desc:"Подбрани външни сайтове за треньорски съвети, футболна техника, стипендии в чужбина и лицензирани агенти.",
+resources_visit_btn:"↗ ПОСЕТИ"
 },
 en: {
 nav_home:"Home", nav_training:"Training", nav_theory:"Theory", nav_trials:"FOOTBALL TRIALS", nav_model:"Game Model",
@@ -793,7 +826,11 @@ reco_empty_desc:"Answer 3 short questions and get a specific program and priorit
 reco_empty_btn:"TAKE THE ASSESSMENT",
 reco_title_label:"RECOMMENDED PROGRAM",
 reco_priority_label:"PRIORITY EXERCISES FOR YOU",
-reco_redo_btn:"REDO", reco_open_program_btn:"OPEN PROGRAM"
+reco_redo_btn:"REDO", reco_open_program_btn:"OPEN PROGRAM",
+nav_resources:"Useful Resources", crumb_resources:"USEFUL RESOURCES",
+resources_subtitle:"Curated external sites for coaching advice, football technique, camps, scholarships, and licensed agents.",
+home_resources_desc:"Curated external sites for coaching advice, football technique, scholarships abroad, and licensed agents.",
+resources_visit_btn:"↗ VISIT"
 }
 };
 
@@ -810,7 +847,7 @@ function go(id,sub){
  const el=document.getElementById(id);if(!el)return;
  el.classList.add("active");
  document.querySelectorAll("[data-go]").forEach(x=>x.classList.toggle("active",x.dataset.go===id));
- const crumbMap={home:"crumb_home",training:"crumb_training",theory:"crumb_theory",model:"crumb_model",trials:"crumb_trials",plan:"crumb_plan"};
+ const crumbMap={home:"crumb_home",training:"crumb_training",theory:"crumb_theory",model:"crumb_model",trials:"crumb_trials",resources:"crumb_resources",plan:"crumb_plan"};
  document.getElementById("crumb").textContent="FOOTURA PLAYER / "+(t(crumbMap[id])!==crumbMap[id]?t(crumbMap[id]):id.toUpperCase());
  if(id==="training"&&sub)trainingTab(sub);
  window.scrollTo({top:0,behavior:"smooth"});
@@ -874,6 +911,19 @@ function render(){
  document.getElementById("roleItems").innerHTML=D().roles.map((r,i)=>`<div class="roleItem"><b>${i+1}. ${r}</b><p class="muted">${D().roleDesc[i]}</p></div>`).join("");
  renderPrograms();
  renderRecommendation();
+ renderResources();
+}
+function renderResources(){
+ const el=document.getElementById("resourcesList"); if(!el)return;
+ el.innerHTML=D().resources.map(r=>{
+   let domain="";
+   try{ domain=new URL(r[1]).hostname.replace(/^www\./,""); }catch(e){ domain=r[1]; }
+   return `<div class="card resourceCard">
+    <div><span class="resourceDomain">${domain}</span><h3 style="margin:6px 0 0">${r[0]}</h3></div>
+    <p class="resourceDesc">${r[2]}</p>
+    <a class="trialSourceLink" style="align-self:flex-start" href="${r[1]}" target="_blank" rel="noopener noreferrer">${t("resources_visit_btn")}</a>
+   </div>`;
+ }).join("");
 }
 function renderPrograms(){
  const el=document.getElementById("programs"); if(!el)return;
