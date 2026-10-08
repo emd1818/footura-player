@@ -182,6 +182,21 @@ CURATED_SOURCES = [
      "en", "Football agency / player-club matching platform", "Paid trial / placement platform"),
     ("https://noorsports.com/sport-camps/soccer-trial-list", "Noor Sports",
      "en", "Football agency / trial listing platform", "Paid soccer trial listings"),
+    # International residential academies (Spain) offering trials, camps and
+    # full-time programs — confirmed by direct fetch to be accessible with no
+    # bot-protection, each with dedicated trial/tryout/camp pages.
+    ("https://soccerinteraction.com/trials-sia-beniganim", "SIA Academy (Beniganim)",
+     "en", "Football academy / residential program", "Football trials in Spain"),
+    ("https://soccerinteraction.com/trials-fc-porto", "SIA Academy (FC Porto)",
+     "en", "Football academy / residential program", "Football trials in Europe"),
+    ("https://soccerinteraction.com/", "SIA Academy",
+     "en", "Football academy / residential program", "Camps and academy programs"),
+    ("https://alicantefootballacademy.com/", "Alicante Football Academy",
+     "en", "Football academy / residential program", "1-9 month residential training program"),
+    ("https://wospacstages.com/level-test-try-out", "WOSPAC Football Academy",
+     "en", "Football academy / camp provider", "Level test / try-out (Barcelona)"),
+    ("https://murciafootballacademy.com/", "Murcia Football Academy",
+     "en", "Football academy / residential program", "Academy trials and programs"),
 ]
 
 
