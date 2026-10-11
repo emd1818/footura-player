@@ -200,7 +200,29 @@ CURATED_SOURCES = [
 ]
 
 
+def _ensure_ascii_url(url):
+    """Percent-encode any non-ASCII characters in a URL's path/query.
+
+    Some discovered article links (e.g. duma.bg) contain raw Cyrillic or
+    typographic quotes, which makes Request() crash with an obscure
+    "'ascii' codec can't encode characters" error and silently drops an
+    otherwise valid candidate. Already-encoded parts (%XX) are kept as-is.
+    """
+    try:
+        url.encode("ascii")
+        return url
+    except UnicodeEncodeError:
+        scheme_sep = url.find("://")
+        if scheme_sep == -1:
+            return url
+        path_start = url.find("/", scheme_sep + 3)
+        if path_start == -1:
+            return url
+        return url[:path_start] + quote(url[path_start:], safe="/?&=%:#@+,;~")
+
+
 def fetch_url(url, timeout=HTTP_TIMEOUT):
+    url = _ensure_ascii_url(url)
     req = Request(
         url,
         headers={
