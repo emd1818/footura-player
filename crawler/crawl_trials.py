@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+-#!/usr/bin/env python3
 """
 FOOTURA Football Trials Crawler - production data-quality version
 
@@ -525,8 +525,18 @@ def verify_source(source, discovered_description=""):
 
     try:
         final_url, body, content_type = fetch_url(url)
-    except Exception as exc:
-        return None, "fetch_error", url, f"{exc}"
+    except Exception as first_exc:
+        if not source.get("curated"):
+            return None, "fetch_error", url, f"{first_exc}"
+        # Hand-picked providers (academies, agencies) are worth a second
+        # try with a much longer timeout: WordPress-heavy academy sites
+        # can be slow from a cloud runner, and a single 12-second miss
+        # would otherwise silently drop them from the database.
+        time.sleep(2)
+        try:
+            final_url, body, content_type = fetch_url(url, timeout=30)
+        except Exception as exc:
+            return None, "fetch_error", url, f"{exc} (after retry; first error: {first_exc})"
 
     try:
         raw = decode_body(body, content_type)
@@ -730,6 +740,7 @@ def main():
 
     verified = 0
     reason_counts = {}
+    curated_status = []
     samples = {"no_future_date": [], "no_future_date_wrapped_unresolved": [], "no_trial_words": [], "match_report_excluded": [], "fetch_error": [], "parse_error": []}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -746,6 +757,9 @@ def main():
             try:
                 record, reason, seen_url, note = future.result()
                 reason_counts[reason] = reason_counts.get(reason, 0) + 1
+                src = futures[future]
+                if src.get("curated"):
+                    curated_status.append((src["name"], src["url"], reason, note if reason != "ok" else ""))
                 if record:
                     verified += 1
                     key = (record["source_url"], record["trial_start"])
@@ -798,6 +812,11 @@ def main():
     print(f"Database              : {DB}")
     print("=" * 60)
     print("Reason breakdown      :", reason_counts)
+    print("=" * 60)
+    print("Curated sources status (every hand-picked provider, ok or not):")
+    for name, url, reason, note in sorted(curated_status):
+        extra = f"  |  {note[:160]}" if note else ""
+        print(f"  [{reason}] {name} — {url}{extra}")
     print("=" * 60)
 
     for reason, urls in samples.items():
