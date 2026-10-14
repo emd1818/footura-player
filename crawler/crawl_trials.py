@@ -1,4 +1,4 @@
--#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 FOOTURA Football Trials Crawler - production data-quality version
 
