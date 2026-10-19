@@ -60,6 +60,23 @@ TRIAL_WORDS = re.compile(
 # ambiguous in Bulgarian/Russian/Spanish — it also means "national team",
 # so a bare match on TRIAL_WORDS is not enough; this excludes routine
 # sports journalism (match reports, post-match quotes, standings).
+# Discovered articles that merely contain a trial-like word ("showcase",
+# "recrutement") but are about something else entirely. Real runs let
+# through: a video-game news piece ("EA Sports FC 25 Showcase"), a
+# robotics video ("Humanoid robots showcase football skills") and a
+# French amateur club's pre-season/transfer round-up. Matched against
+# the page TITLE and URL only (never the body, whose menus and sidebars
+# mention unrelated topics) and applied to discovered candidates only —
+# hand-picked providers are never filtered this way.
+NON_TRIAL_TOPICS = re.compile(
+    r"\bEA\s+Sports\b|\bFC\s?2\d\b|videojuego|video\s?game|\bgaming\b|"
+    r"\be-?sports\b|playstation|\bPS[45]\b|xbox|nintendo|ultimate\s+team|"
+    r"\brobots?\b|\brobot[oa]s?\b|humano[ií]de|"
+    r"matchs?\s+amicaux|pr[eé]paration\s+estivale|pr[eé]-?saison|pre-?season|"
+    r"pretemporada|pretemporada|\bmercato\b|fichaje|\btransfert\b",
+    re.I,
+)
+
 MATCH_REPORT_WORDS = re.compile(
     r"\b("
     r"минута|полувреме|дузпа|жълт картон|червен картон|головата|"
@@ -574,6 +591,9 @@ def verify_source(source, discovered_description=""):
         # for them — they're already known to be legitimate.
         curated = bool(source.get("curated"))
 
+        if not curated and NON_TRIAL_TOPICS.search(f"{title} {final_url}"):
+            return None, "non_trial_topic", final_url, title[:120]
+
         if not curated and not TRIAL_WORDS.search(evidence):
             return None, "no_trial_words", final_url, title[:120]
 
@@ -741,7 +761,7 @@ def main():
     verified = 0
     reason_counts = {}
     curated_status = []
-    samples = {"no_future_date": [], "no_future_date_wrapped_unresolved": [], "no_trial_words": [], "match_report_excluded": [], "fetch_error": [], "parse_error": []}
+    samples = {"no_future_date": [], "no_future_date_wrapped_unresolved": [], "no_trial_words": [], "match_report_excluded": [], "non_trial_topic": [], "fetch_error": [], "parse_error": []}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {
